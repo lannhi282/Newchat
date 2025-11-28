@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const Message = require("../models/messageModel");
 const User = require("../models/userModel");
 const Chat = require("../models/chatModel");
+const cloudinary = require("../utils/cloudinary");
 
 //@description     Get all Messages
 //@route           GET /api/Message/:chatId
@@ -25,16 +26,33 @@ const allMessages = asyncHandler(async (req, res) => {
 const sendMessage = asyncHandler(async (req, res) => {
   const { content, chatId } = req.body;
 
-  if (!content || !chatId) {
-    // console.log("Invalid data passed into request");
+  if ((!content && !req.file) || !chatId) {
     return res.sendStatus(400);
   }
 
   var newMessage = {
     sender: req.user._id,
-    content: content,
+    content: content || "",
     chat: chatId,
   };
+
+  // Handle file upload if present
+  if (req.file) {
+    try {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "chat_files",
+        resource_type: "auto",
+      });
+
+      newMessage.fileUrl = result.secure_url;
+      newMessage.fileName = req.file.originalname;
+      newMessage.fileType = req.file.mimetype;
+      newMessage.cloudinary_id = result.public_id;
+    } catch (uploadError) {
+      res.status(400);
+      throw new Error("File upload failed: " + uploadError.message);
+    }
+  }
 
   try {
     var message = await Message.create(newMessage);

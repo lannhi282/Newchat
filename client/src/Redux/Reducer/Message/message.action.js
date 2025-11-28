@@ -48,10 +48,17 @@ export const updateGetAllChats = (messageRecived) => async (dispatch) => {
 // send message
 export const sendMessge = (messageData) => async (dispatch) => {
   try {
+    const isFormData = messageData instanceof FormData;
+
     const newMessage = await axios({
-      method: "POSt",
+      method: "POST",
       url: `${SERVER_ACCESS_BASE_URL}/api/message`,
-      data: { ...messageData },
+      data: messageData,
+      headers: isFormData
+        ? {
+            "Content-Type": "multipart/form-data",
+          }
+        : {},
     });
 
     return dispatch({ type: SEND_MESSAGE, payload: newMessage.data });

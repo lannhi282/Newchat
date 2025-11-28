@@ -50,6 +50,7 @@ const ChatWindow = () => {
   const [typing, setTyping] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [user, setUser] = useState();
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const senderUser = useSelector(
     (globalState) => globalState.chat.selectedChat
@@ -143,19 +144,30 @@ const ChatWindow = () => {
 
   // Sending message
   const handleClick = async () => {
-    // console.log(newMessage, sender._id);
-    // alert("Hello");
-    if (!newMessage) {
+    if (!newMessage && !selectedFile) {
       socket.emit("stop typing", user[0]._id);
       alert("Empty Message can't be send");
       return;
     }
-    const messageData = {
-      chatId: sender._id,
-      content: newMessage,
-    };
+
+    const formData = new FormData();
+    formData.append("chatId", sender._id);
+    formData.append("content", newMessage);
+
+    if (selectedFile) {
+      formData.append("file", selectedFile);
+    }
+
     setNewMessage("");
-    await dispatch(sendMessge(messageData));
+    setSelectedFile(null);
+    await dispatch(sendMessge(formData));
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+    }
   };
   useEffect(() => {
     if (inputRef.current !== null) {
@@ -306,18 +318,13 @@ const ChatWindow = () => {
                             {/* status to be set later */}
                             <small className="truncate">
                               {sender.isGroupChat ? (
-                                sender.users.map(
-                                  (item, index) =>
-                                   (
-                                    <>
-                                      <span key={index} className="text-sm">
-                                      {
-                                        (index ? ", " : " ") + item.name
-                                      }
-                                      </span>
-                                    </>
-                                   )
-                                )
+                                sender.users.map((item, index) => (
+                                  <>
+                                    <span key={index} className="text-sm">
+                                      {(index ? ", " : " ") + item.name}
+                                    </span>
+                                  </>
+                                ))
                               ) : (
                                 <>
                                   {/* {socketConnected ? (
@@ -366,9 +373,34 @@ const ChatWindow = () => {
                                   <div className="user-chat-content">
                                     <div className="flex mb-3 justify-end">
                                       <div className="chat-wrap-content">
-                                        <span className="mb-0 chat-content text-sm font-medium text-left">
-                                          {item.content}
-                                        </span>
+                                        {item.fileUrl &&
+                                          item.fileType?.startsWith(
+                                            "image/"
+                                          ) && (
+                                            <img
+                                              src={item.fileUrl}
+                                              alt={item.fileName}
+                                              className="max-w-xs rounded mb-2"
+                                            />
+                                          )}
+                                        {item.fileUrl &&
+                                          !item.fileType?.startsWith(
+                                            "image/"
+                                          ) && (
+                                            <a
+                                              href={item.fileUrl}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-blue-500 underline block mb-2"
+                                            >
+                                              📄 {item.fileName}
+                                            </a>
+                                          )}
+                                        {item.content && (
+                                          <span className="mb-0 chat-content text-sm font-medium text-left">
+                                            {item.content}
+                                          </span>
+                                        )}
                                       </div>
                                     </div>
                                     <div className="conversation-name ">
@@ -402,9 +434,34 @@ const ChatWindow = () => {
                                   <div className="user-chat-content">
                                     <div className="flex mb-3">
                                       <div className="chat-wrap-content">
-                                        <span className="mb-0  text-sm font-medium text-left">
-                                          {item.content}
-                                        </span>
+                                        {item.fileUrl &&
+                                          item.fileType?.startsWith(
+                                            "image/"
+                                          ) && (
+                                            <img
+                                              src={item.fileUrl}
+                                              alt={item.fileName}
+                                              className="max-w-xs rounded mb-2"
+                                            />
+                                          )}
+                                        {item.fileUrl &&
+                                          !item.fileType?.startsWith(
+                                            "image/"
+                                          ) && (
+                                            <a
+                                              href={item.fileUrl}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-blue-500 underline block mb-2"
+                                            >
+                                              📄 {item.fileName}
+                                            </a>
+                                          )}
+                                        {item.content && (
+                                          <span className="mb-0  text-sm font-medium text-left">
+                                            {item.content}
+                                          </span>
+                                        )}
                                       </div>
                                     </div>
                                     <div className="conversation-name">
@@ -464,12 +521,22 @@ const ChatWindow = () => {
                 <div className="chat-input-section p-5 p-lg-6">
                   <div className="flex justify-between items-center">
                     <div className="chat-input flex">
-                      {/* 3 dot button button */}
-                      {/* <div className="links-list-item">
-                      <div className="btn dot-btn">
-                        <BiDotsHorizontalRounded />
+                      {/* File upload button */}
+                      <div className="links-list-item">
+                        <label
+                          htmlFor="file-input"
+                          className="flex justify-center items-center btn emoji-btn mr-2 cursor-pointer"
+                        >
+                          📎
+                        </label>
+                        <input
+                          id="file-input"
+                          type="file"
+                          accept="image/*,.pdf,.doc,.docx,.txt"
+                          onChange={handleFileSelect}
+                          style={{ display: "none" }}
+                        />
                       </div>
-                    </div> */}
                       {/* emoji button */}
                       <div className="links-list-item">
                         <Menu>
@@ -498,7 +565,11 @@ const ChatWindow = () => {
                     {/* input field */}
                     <div className="position-relative w-full">
                       <input
-                        placeholder="Type Your message..."
+                        placeholder={
+                          selectedFile
+                            ? `File: ${selectedFile.name}`
+                            : "Type Your message..."
+                        }
                         autoComplete="off"
                         id="chat-input"
                         className="w-full py-3 px-5 focus:outline-none"

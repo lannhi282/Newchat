@@ -33,6 +33,10 @@ app.use(helmet());
 app.use(express.json()); //to accept json data
 app.use(express.json());
 
+// Serve uploaded files
+const path = require("path");
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 app.get("/", (req, res) => {
   res.json({
     message: "Welcome to E-Talk Server",
@@ -81,9 +85,11 @@ io.on("connection", (socket) => {
     console.log(`user joined room. Room _id : ${room._id}`);
   });
 
-  socket.on("typing", (room) => socket.in(room).emit("typing",{
-    senderId: room.senderId
-  }));
+  socket.on("typing", (room) =>
+    socket.in(room).emit("typing", {
+      senderId: room.senderId,
+    })
+  );
   socket.on("stop typing", (room) => socket.in(room).emit("stop typing"));
 
   socket.on("new message", (newMessageRecieved) => {
