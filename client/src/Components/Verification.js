@@ -1,5 +1,5 @@
 import React, { useEffect, useState, Fragment } from "react";
-import { GoUnverified, GoVerified, GoMailRead, GoMail } from "react-icons/go";
+import { GoUnverified, GoVerified, GoRead, GoMail } from "react-icons/go";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { Dialog, Transition } from "@headlessui/react";
@@ -33,27 +33,24 @@ const Verification = () => {
   useEffect(() => {
     if (localStorage.ETalkUser) {
       dispatch(getMySelf());
-
-      // dispatch(fetchChats());
     }
-    // eslint-disable-next-line
   }, [localStorage]);
-  const user = useSelector((globalState) => globalState.user.userDetails);
-  const result = useSelector((globalState) => globalState.auth.message);
+
+  const user = useSelector((state) => state.user.userDetails);
+  const result = useSelector((state) => state.auth.message);
 
   useEffect(() => {
     if (status) {
       navigate("/");
     }
   }, [status]);
+
   useEffect(() => {
     if (!user) {
       navigate("/");
     }
     if (user) {
       setStatus(user.is_verified);
-      // console.log(user.email);
-      // dispatch(userVerification(user));
     }
   }, [user]);
 
@@ -68,18 +65,13 @@ const Verification = () => {
   };
 
   const sendMail = () => {
-    if (userData.email === null || userData.email === "") {
+    if (!userData.email) {
       alert("please enter a valid email");
       return;
     }
-    // alert(userData.email);
     dispatch(userVerification(userData));
-    // const infoMessage = `A verification mail is resend to your email ${userData.email} . Kindly Check your Spam or Junk Folder.`;
-
     setIsOpen(false);
-    setUserData({
-      email: "",
-    });
+    setUserData({ email: "" });
   };
 
   return (
@@ -88,10 +80,9 @@ const Verification = () => {
         {status ? (
           <>
             <div className="flex flex-col items-center justify-center w-2/4 ">
-              <GoMailRead className="mail-icon" color="#8af859" />
+              <GoRead className="mail-icon" color="#8af859" />
               <p className="my-2">Your Email is Verified Now.</p>
             </div>
-            <h1></h1>
           </>
         ) : (
           <>
@@ -100,9 +91,7 @@ const Verification = () => {
               <h1>Verify Your Email</h1>
               <p className="my-2 px-2 mx-auto ">{message}</p>
               <p className="my-2 font-bold px-2 mx-auto">OR</p>
-              {/* <p className="text-2xl text-gray-900 dark:text-white my-2 px-2 mx-auto align-middle">
-                Verification Link
-              </p> */}
+
               <div className="flex">
                 <button
                   className="text-2xl cursor-pointer mx-auto"
@@ -118,6 +107,8 @@ const Verification = () => {
                 </button>
               </div>
             </div>
+
+            {/* Modal */}
             <Transition className="box" appear show={isOpen} as={Fragment}>
               <Dialog
                 as="div"
@@ -155,8 +146,6 @@ const Verification = () => {
                           Resend Verification Mail
                         </Dialog.Title>
 
-                        {/* Resend verification mail  */}
-
                         <div className="mt-4">
                           <div>
                             <div className="mb-6">
@@ -190,7 +179,6 @@ const Verification = () => {
                           <button
                             type="button"
                             className="btn bg-cyan-500 rounded px-4"
-                            // disabled
                             onClick={() => sendMail()}
                           >
                             Send
