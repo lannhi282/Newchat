@@ -9,12 +9,28 @@ const cloudinary = require("../utils/cloudinary");
 //@access          Protected
 const allMessages = asyncHandler(async (req, res) => {
   try {
-    const messages = await Message.find({ chat: req.params.chatId })
+    const chat = await Chat.findById(req.params.chatId);
+
+    // Tìm thời điểm user xóa lịch sử (nếu có)
+    const userDeletedHistory = chat.deletedHistoryBy?.find(
+      (item) => item.userId.toString() === req.user._id.toString()
+    );
+
+    const query = {
+      chat: req.params.chatId,
+    };
+
+    // Nếu user đã xóa lịch sử, chỉ lấy tin nhắn sau thời điểm đó
+    if (userDeletedHistory) {
+      query.createdAt = { $gt: userDeletedHistory.deletedAt };
+    }
+
+    const messages = await Message.find(query)
       .populate("sender", "name pic email")
       .populate("chat");
+
     res.json(messages);
   } catch (error) {
-    0;
     res.status(400);
     throw new Error(error.message);
   }

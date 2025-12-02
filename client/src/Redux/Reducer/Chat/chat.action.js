@@ -143,3 +143,20 @@ export const clearSelectChatAction = () => async (dispatch) => {
 //     return dispatch({ type: "ERROR", payload: error });
 //   }
 // };
+// Delete chat
+export const deleteChatAction = (chatId) => async (dispatch) => {
+  try {
+    const response = await axios({
+      method: "DELETE",
+      url: `${SERVER_ACCESS_BASE_URL}/api/chat`,
+      data: { chatId },
+    });
+
+    return dispatch({
+      type: "DELETE_CHAT",
+      payload: chatId,
+    });
+  } catch (error) {
+    return dispatch({ type: "ERROR", payload: error });
+  }
+};

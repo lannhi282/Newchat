@@ -99,11 +99,13 @@ const ChatWindow = () => {
   };
 
   const getUserId = () => {
-    if (loggedUser._id === sender?.users[0]._id) {
-      const arr = sender.users.reverse();
-      setUser(arr);
-    } else {
-      setUser(sender?.users);
+    if (sender && sender.users && sender.users.length > 0 && loggedUser) {
+      if (loggedUser._id === sender.users[0]._id) {
+        const arr = [...sender.users].reverse();
+        setUser(arr);
+      } else {
+        setUser(sender.users);
+      }
     }
   };
 
@@ -122,7 +124,7 @@ const ChatWindow = () => {
     // typing Indicator
     if (!socketConnected) return;
 
-    if (!typing) {
+    if (!typing && user && user.length > 0 && user[0]) {
       setTyping(true);
       socket.emit("typing", user[0]._id);
       console.log(typing);
@@ -134,7 +136,13 @@ const ChatWindow = () => {
       var timeNow = new Date().getTime();
       var timeDiff = timeNow - lastTypingTime;
 
-      if (timeDiff >= timerLength && typing) {
+      if (
+        timeDiff >= timerLength &&
+        typing &&
+        user &&
+        user.length > 0 &&
+        user[0]
+      ) {
         socket.emit("stop typing", user[0]._id);
         setTyping(false);
       }
@@ -145,7 +153,9 @@ const ChatWindow = () => {
   // Sending message
   const handleClick = async () => {
     if (!newMessage && !selectedFile) {
-      socket.emit("stop typing", user[0]._id);
+      if (user && user.length > 0 && user[0]) {
+        socket.emit("stop typing", user[0]._id);
+      }
       alert("Empty Message can't be send");
       return;
     }
@@ -317,13 +327,11 @@ const ChatWindow = () => {
                           <p className="mb-0 truncate">
                             {/* status to be set later */}
                             <small className="truncate">
-                              {sender.isGroupChat ? (
+                              {sender.isGroupChat && sender.users ? (
                                 sender.users.map((item, index) => (
-                                  <>
-                                    <span key={index} className="text-sm">
-                                      {(index ? ", " : " ") + item.name}
-                                    </span>
-                                  </>
+                                  <span key={index} className="text-sm">
+                                    {(index ? ", " : " ") + item.name}
+                                  </span>
                                 ))
                               ) : (
                                 <>

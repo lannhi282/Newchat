@@ -8,7 +8,8 @@ import message from "./Message/message.reducer";
 import profileImage from "./ProfileImage/profileImage.reducer";
 import themeReducer from "./Theme/theme.reducer";
 import tabReducer from "./Tab/tabReducer";
-import setColorReducer from "./SetColor/setColorReducer"
+import setColorReducer from "./SetColor/setColorReducer";
+import onlineUsersReducer from "./OnlineUsers/onlineUsers.reducer";
 
 const rootReducer = combineReducers({
   auth,
@@ -18,7 +19,8 @@ const rootReducer = combineReducers({
   message,
   themeReducer,
   tabReducer,
-  setColorReducer
+  setColorReducer,
+  onlineUsers: onlineUsersReducer,
 });
 
 export default rootReducer;

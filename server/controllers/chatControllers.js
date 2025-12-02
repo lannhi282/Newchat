@@ -56,7 +56,11 @@ const accessChat = asyncHandler(async (req, res) => {
 //@access          Protected
 const fetchChats = asyncHandler(async (req, res) => {
   try {
-    Chat.find({ users: { $elemMatch: { $eq: req.user._id } } })
+    Chat.find({
+      users: { $elemMatch: { $eq: req.user._id } },
+      // Chỉ loại trừ chat 1-1 đã bị ẩn
+      deletedBy: { $ne: req.user._id },
+    })
       .populate("users", "-password")
       .populate("groupAdmin", "-password")
       .populate("latestMessage")
@@ -179,6 +183,73 @@ const removeFromGroup = asyncHandler(async (req, res) => {
     res.json(removed);
   }
 });
+
+const deleteChat = asyncHandler(async (req, res) => {
+  const { chatId } = req.body;
+
+  if (!chatId) {
+    res.status(400);
+    throw new Error("Chat ID is required");
+  }
+
+  try {
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      res.status(404);
+      throw new Error("Chat not found");
+    }
+
+    // Kiểm tra xem user có trong chat không
+    if (!chat.users.includes(req.user._id)) {
+      res.status(403);
+      throw new Error("You are not part of this chat");
+    }
+
+    if (chat.isGroupChat) {
+      // ===== NHÓM: Xóa lịch sử tin nhắn =====
+      await Chat.findByIdAndUpdate(chatId, {
+        $addToSet: {
+          deletedHistoryBy: {
+            userId: req.user._id,
+            deletedAt: new Date(),
+          },
+        },
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Chat history cleared. You will still receive new messages.",
+        chatId: chatId,
+        type: "history_cleared",
+      });
+    } else {
+      // ===== CHAT 1-1: Ẩn chat =====
+      const updatedChat = await Chat.findByIdAndUpdate(
+        chatId,
+        {
+          $addToSet: { deletedBy: req.user._id },
+        },
+        { new: true }
+      );
+
+      // Nếu cả 2 người đều xóa → xóa hẳn khỏi DB
+      if (updatedChat.deletedBy.length === updatedChat.users.length) {
+        await Chat.findByIdAndDelete(chatId);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Chat deleted successfully",
+        chatId: chatId,
+        type: "chat_deleted",
+      });
+    }
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+});
 module.exports = {
   accessChat,
   fetchChats,
@@ -186,4 +257,5 @@ module.exports = {
   renameGroup,
   addToGroup,
   removeFromGroup,
+  deleteChat,
 };

@@ -9,6 +9,7 @@ import {
   REMOVE_USER_FROM_GROUP,
   SELECT_CHAT,
   SHOW_USER_LOADING,
+  DELETE_CHAT,
 } from "./chat.type";
 const initialState = {
   chats: [],
@@ -73,7 +74,13 @@ const chatReducer = (state = initialState, action) => {
         ...state,
         isUserLoading: action.payload,
       };
-
+    case DELETE_CHAT:
+      return {
+        ...state,
+        chats: state.chats.filter((chat) => chat._id !== action.payload),
+        selectedChat:
+          state.selectedChat._id === action.payload ? {} : state.selectedChat,
+      };
     default:
       return {
         ...state,

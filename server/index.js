@@ -68,12 +68,25 @@ const io = require("socket.io")(server, {
   },
 });
 
+const User = require("./models/userModel");
+
 io.on("connection", (socket) => {
   console.log("connetcted to Socket.io");
 
-  socket.on("setup", (userData) => {
+  socket.on("setup", async (userData) => {
     socket.join(userData._id);
+    socket.userId = userData._id;
     console.log(`${userData.name} with _id: ${userData._id} is connected.`);
+
+    // Update user status to online
+    await User.findByIdAndUpdate(userData._id, {
+      isOnline: true,
+      lastSeen: new Date(),
+    });
+
+    // Broadcast to all users that this user is online
+    io.emit("user online", userData._id);
+
     socket.emit("connected");
   });
 
@@ -97,9 +110,6 @@ io.on("connection", (socket) => {
     if (!chat) {
       return;
     }
-    // if (!chat.users) {
-    //   retconsole.log("chat.users is not defined");
-    // }
 
     chat.users.forEach((user) => {
       if (user._id == newMessageRecieved.sender._id) {
@@ -107,5 +117,19 @@ io.on("connection", (socket) => {
       }
       socket.in(user._id).emit("message recieved", newMessageRecieved);
     });
+  });
+
+  socket.on("disconnect", async () => {
+    if (socket.userId) {
+      // Update user status to offline
+      await User.findByIdAndUpdate(socket.userId, {
+        isOnline: false,
+        lastSeen: new Date(),
+      });
+
+      // Broadcast to all users that this user is offline
+      io.emit("user offline", socket.userId);
+      console.log(`User ${socket.userId} disconnected`);
+    }
   });
 });

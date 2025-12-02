@@ -1,12 +1,21 @@
 import React from "react";
 import styled from "styled-components";
 import { getSender, getSenderPic } from "../HelperFunction/chat.Helper";
-
+import { useSelector } from "react-redux";
 import moment from "moment";
 import Highlighter from "react-highlight-words";
 
-const UserList = ({ searchOpen, query , chatList, chat, loggedUser, result, setSelectedChat }) => {
-  
+const UserList = ({
+  searchOpen,
+  query,
+  chatList,
+  chat,
+  loggedUser,
+  result,
+  setSelectedChat,
+}) => {
+  const onlineUsers = useSelector((state) => state.onlineUsers.onlineUsers);
+
   const userChatShow = () => {
     document
       .getElementById("user-chat")
@@ -15,12 +24,12 @@ const UserList = ({ searchOpen, query , chatList, chat, loggedUser, result, setS
   };
 
   return (
-    // <Wrapper>
     <Wrapper>
       <ul className="chat-main h-full overflow-x-hidden overflow-y-scroll">
         {chatList.length !== 0 ? (
           <div className="mb-4" onClick={() => userChatShow()}>
             {chatList
+              .filter((item) => item && item._id) // FIX: Lọc bỏ undefined
               .filter((item) => {
                 return query.toLowerCase() === "" || searchOpen === false
                   ? item
@@ -43,10 +52,9 @@ const UserList = ({ searchOpen, query , chatList, chat, loggedUser, result, setS
                   }
                 >
                   <div className="chat-box flex items-center cursor-pointer">
-                    <div className="profile">
+                    <div className="profile relative">
                       <img
                         className=" w-12 h-12 rounded-full"
-                        // src={chat[index].users[0].pic}
                         src={
                           !item.isGroupChat
                             ? getSenderPic(loggedUser, item.users)
@@ -54,6 +62,18 @@ const UserList = ({ searchOpen, query , chatList, chat, loggedUser, result, setS
                         }
                         alt="user_logo"
                       />
+                      {!item.isGroupChat && item.users && (
+                        <span
+                          className={`online-status ${
+                            onlineUsers.includes(
+                              item.users.find((u) => u._id !== loggedUser._id)
+                                ?._id
+                            )
+                              ? "online"
+                              : "offline"
+                          }`}
+                        ></span>
+                      )}
                     </div>
                     <div className="details w-3/4">
                       <Highlighter
@@ -90,34 +110,24 @@ const UserList = ({ searchOpen, query , chatList, chat, loggedUser, result, setS
                       </p>
                     </div>
                     <div className="data-status h-full avatar-group">
-                      {chat[index].isGroupChat ? (
+                      {/* FIX: Dùng item thay vì chat[index] */}
+                      {item.isGroupChat ? (
                         <div className="flex -space-x-4">
-                          <img
-                            className="w-8 h-8 border-2 bg-white  rounded-full  hover:z-10"
-                            src={chat[index].users[0].pic}
-                            alt=""
-                          />
-                          <img
-                            className="w-8 h-8 border-2 bg-white  rounded-full  hover:z-10"
-                            src={chat[index].users[1].pic}
-                            alt=""
-                          />
-                          <img
-                            className="w-8 h-8 border-2 bg-white  rounded-full  hover:z-10"
-                            src={chat[index].users[2].pic}
-                            alt=""
-                          />
-                          {chat[index].users.length > 3 ? (
+                          {item.users.slice(0, 3).map((user, idx) => (
+                            <img
+                              key={user._id || idx}
+                              className="w-8 h-8 border-2 bg-white rounded-full hover:z-10"
+                              src={user.pic}
+                              alt=""
+                            />
+                          ))}
+                          {item.users.length > 3 ? (
                             <div className="flex items-center justify-center w-8 h-8 text-xs font-medium text-white bg-gray-700 border-2 border-white rounded-full hover:bg-gray-600">
-                              {`+${chat[index].users.length - 3}`}
+                              {`+${item.users.length - 3}`}
                             </div>
-                          ) : (
-                            <></>
-                          )}
+                          ) : null}
                         </div>
-                      ) : (
-                        <></>
-                      )}
+                      ) : null}
 
                       <p>
                         {item.latestMessage
@@ -153,11 +163,32 @@ const UserList = ({ searchOpen, query , chatList, chat, loggedUser, result, setS
     </Wrapper>
   );
 };
+
 const Wrapper = styled.section`
   position: relative;
 
   mark {
     background-color: ${({ theme }) => theme.colors.primaryRgb};
+  }
+
+  .profile {
+    .online-status {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid ${({ theme }) => theme.colors.bg.primary};
+
+      &.online {
+        background-color: #4eac6d;
+      }
+
+      &.offline {
+        background-color: #9ca3af;
+      }
+    }
   }
   .chat-main {
     height: calc(100vh - 90px);

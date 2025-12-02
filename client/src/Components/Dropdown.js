@@ -3,16 +3,20 @@ import { ImBlocked, ImExit } from "react-icons/im";
 import { CgProfile } from "react-icons/cg";
 import { BiDotsVerticalRounded } from "react-icons/bi";
 import { RiDeleteBin6Line } from "react-icons/ri";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 
 import { Menu, Transition } from "@headlessui/react";
 import UserProfile from "./SlideMenu/UserProfile";
 import { MdFavorite } from "react-icons/md";
 import { toast } from "react-toastify";
+import {
+  deleteChatAction,
+  clearSelectChatAction,
+} from "../Redux/Reducer/Chat/chat.action";
 
 const Dropdown = (props) => {
   const [sender, setSender] = useState();
-
+  const dispatch = useDispatch();
   const senderUser = useSelector(
     (globalState) => globalState.chat.selectedChat
   );
@@ -29,17 +33,47 @@ const Dropdown = (props) => {
   //     theme: "light",
   //   });
   // };
-  const handleClickDeleteChat = () => {
-    toast.success("We are working this feature. Available Soon", {
-      position: "top-right",
-      autoClose: 1000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
-    });
+  const handleClickDeleteChat = async () => {
+    if (!senderUser?._id) {
+      toast.error("No chat selected", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+      return;
+    }
+
+    // Thông báo khác nhau cho nhóm và chat 1-1
+    const confirmMessage = senderUser.isGroupChat
+      ? "Clear all chat history? You will still remain in the group and receive new messages."
+      : "Delete this chat? It will be removed from your chat list.";
+
+    if (window.confirm(confirmMessage)) {
+      try {
+        await dispatch(deleteChatAction(senderUser._id));
+
+        if (senderUser.isGroupChat) {
+          // Nhóm: chỉ xóa lịch sử, không clear selected chat
+          toast.success("Chat history cleared", {
+            position: "top-right",
+            autoClose: 2000,
+          });
+          // Reload messages để cập nhật
+          window.location.reload();
+        } else {
+          // Chat 1-1: xóa và clear selected
+          await dispatch(clearSelectChatAction());
+          toast.success("Chat deleted successfully", {
+            position: "top-right",
+            autoClose: 2000,
+          });
+        }
+      } catch (error) {
+        toast.error("Failed to delete chat", {
+          position: "top-right",
+          autoClose: 2000,
+        });
+      }
+    }
   };
   const handleClickLeaveGroup = () => {
     toast.success("We are working this feature. Available Soon", {

@@ -407,6 +407,20 @@ const uploadProfileImage = asyncHandler(async (req, res) => {
   }
 });
 
+// Get all online users
+const getOnlineUsers = asyncHandler(async (req, res) => {
+  try {
+    const onlineUsers = await User.find({ isOnline: true }).select(
+      "_id name pic"
+    );
+    res.status(200).json(onlineUsers);
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+});
+
 module.exports = {
   registerUser,
   verifyEmail,
@@ -419,4 +433,5 @@ module.exports = {
   resetPassword,
   updateProfile,
   invitingUser,
+  getOnlineUsers,
 };
