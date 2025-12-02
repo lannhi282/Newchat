@@ -160,3 +160,21 @@ export const deleteChatAction = (chatId) => async (dispatch) => {
     return dispatch({ type: "ERROR", payload: error });
   }
 };
+
+// Leave group
+export const leaveGroupAction = (chatId, userId) => async (dispatch) => {
+  try {
+    const response = await axios({
+      method: "PUT",
+      url: `${SERVER_ACCESS_BASE_URL}/api/chat/groupremove`,
+      data: { chatId, userId },
+    });
+
+    return dispatch({
+      type: "LEAVE_GROUP",
+      payload: chatId,
+    });
+  } catch (error) {
+    return dispatch({ type: "ERROR", payload: error });
+  }
+};

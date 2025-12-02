@@ -81,6 +81,12 @@ const chatReducer = (state = initialState, action) => {
         selectedChat:
           state.selectedChat._id === action.payload ? {} : state.selectedChat,
       };
+    case "LEAVE_GROUP":
+      return {
+        ...state,
+        chats: state.chats.filter((chat) => chat._id !== action.payload),
+        selectedChat: {},
+      };
     default:
       return {
         ...state,

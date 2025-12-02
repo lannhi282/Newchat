@@ -250,6 +250,70 @@ const deleteChat = asyncHandler(async (req, res) => {
     throw new Error(error.message);
   }
 });
+
+const leaveGroup = asyncHandler(async (req, res) => {
+  const { chatId } = req.body;
+
+  if (!chatId) {
+    res.status(400);
+    throw new Error("Chat ID is required");
+  }
+
+  try {
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      res.status(404);
+      throw new Error("Chat not found");
+    }
+
+    if (!chat.isGroupChat) {
+      res.status(400);
+      throw new Error("This is not a group chat");
+    }
+
+    // Kiểm tra xem user có trong nhóm không
+    if (!chat.users.includes(req.user._id)) {
+      res.status(403);
+      throw new Error("You are not part of this group");
+    }
+
+    // Kiểm tra số lượng thành viên
+    if (chat.users.length <= 3) {
+      res.status(400);
+      throw new Error("Cannot leave group with less than 3 members remaining");
+    }
+
+    // Xóa user khỏi nhóm
+    const updatedChat = await Chat.findByIdAndUpdate(
+      chatId,
+      {
+        $pull: { users: req.user._id },
+      },
+      { new: true }
+    )
+      .populate("users", "-password")
+      .populate("groupAdmin", "-password");
+
+    // Nếu admin rời nhóm, chuyển quyền admin cho người khác
+    if (chat.groupAdmin.toString() === req.user._id.toString()) {
+      const newAdmin = updatedChat.users[0]._id;
+      await Chat.findByIdAndUpdate(chatId, {
+        groupAdmin: newAdmin,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "You have left the group",
+      chatId: chatId,
+    });
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+});
+
 module.exports = {
   accessChat,
   fetchChats,
@@ -258,4 +322,5 @@ module.exports = {
   addToGroup,
   removeFromGroup,
   deleteChat,
+  leaveGroup,
 };

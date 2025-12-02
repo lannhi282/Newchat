@@ -12,6 +12,8 @@ import { toast } from "react-toastify";
 import {
   deleteChatAction,
   clearSelectChatAction,
+  removeUserFromGroup,
+  fetchChats,
 } from "../Redux/Reducer/Chat/chat.action";
 
 const Dropdown = (props) => {
@@ -20,6 +22,7 @@ const Dropdown = (props) => {
   const senderUser = useSelector(
     (globalState) => globalState.chat.selectedChat
   );
+  const loggedUser = useSelector((state) => state.user.userDetails);
 
   // const handleClickMarkAsFavourites = () => {
   //   toast.success("We are working this feature. Available Soon", {
@@ -42,50 +45,84 @@ const Dropdown = (props) => {
       return;
     }
 
-    // Thông báo khác nhau cho nhóm và chat 1-1
     const confirmMessage = senderUser.isGroupChat
       ? "Clear all chat history? You will still remain in the group and receive new messages."
       : "Delete this chat? It will be removed from your chat list.";
 
-    if (window.confirm(confirmMessage)) {
-      try {
-        await dispatch(deleteChatAction(senderUser._id));
+    if (!window.confirm(confirmMessage)) return;
 
-        if (senderUser.isGroupChat) {
-          // Nhóm: chỉ xóa lịch sử, không clear selected chat
-          toast.success("Chat history cleared", {
-            position: "top-right",
-            autoClose: 2000,
-          });
-          // Reload messages để cập nhật
+    try {
+      await dispatch(deleteChatAction(senderUser._id));
+
+      if (senderUser.isGroupChat) {
+        toast.success("Chat history cleared", {
+          position: "top-right",
+          autoClose: 2000,
+        });
+        setTimeout(() => {
           window.location.reload();
-        } else {
-          // Chat 1-1: xóa và clear selected
-          await dispatch(clearSelectChatAction());
-          toast.success("Chat deleted successfully", {
-            position: "top-right",
-            autoClose: 2000,
-          });
-        }
-      } catch (error) {
-        toast.error("Failed to delete chat", {
+        }, 500); // Đợi 0.5s để toast hiển thị trước reload
+      } else {
+        await dispatch(clearSelectChatAction());
+        toast.success("Chat deleted successfully", {
           position: "top-right",
           autoClose: 2000,
         });
       }
+    } catch (error) {
+      toast.error("Failed to delete chat", {
+        position: "top-right",
+        autoClose: 2000,
+      });
     }
   };
-  const handleClickLeaveGroup = () => {
-    toast.success("We are working this feature. Available Soon", {
-      position: "top-right",
-      autoClose: 1000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
-    });
+
+  const handleClickLeaveGroup = async () => {
+    if (!senderUser?._id || !senderUser.isGroupChat) {
+      toast.error("Please select a group chat", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+      return;
+    }
+
+    if (!loggedUser?._id) {
+      toast.error("User not logged in", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+      return;
+    }
+
+    if (!window.confirm("Are you sure you want to leave this group?")) return;
+
+    const loadingToast = toast.loading("Leaving group...");
+
+    try {
+      await dispatch(
+        removeUserFromGroup({
+          chatId: senderUser._id,
+          userId: loggedUser._id,
+        })
+      );
+
+      toast.dismiss(loadingToast);
+      toast.success("Left group successfully", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 500); // Đợi toast hiển thị trước reload
+    } catch (error) {
+      console.error("Leave group error:", error);
+      toast.dismiss(loadingToast);
+      toast.error("Failed to leave group", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+    }
   };
   useEffect(() => {
     setSender(senderUser);
