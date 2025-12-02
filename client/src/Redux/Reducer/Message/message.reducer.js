@@ -20,21 +20,18 @@ const messageReducer = (state = initialState, action) => {
       return {
         ...state,
         allMessages: action.payload,
-
       };
 
     case SEND_MESSAGE:
       return {
         ...state,
         createdMessage: action.payload,
-
       };
 
     case UPDATE_GET_ALL_MESSAGE:
       return {
         ...state,
         allMessages: [...state.allMessages, action.payload],
-
       };
 
     case CLEAR_ALL_MESSAGE:
@@ -44,15 +41,15 @@ const messageReducer = (state = initialState, action) => {
       };
 
     case SHOW_TOOGLE_LOADING:
-      return{
+      return {
         ...state,
-        isLoading: action.payload
-      }
-      case SHOW_NETWORK_ERROR:
-      return{
+        isLoading: action.payload,
+      };
+    case SHOW_NETWORK_ERROR:
+      return {
         ...state,
-        isNetworkError: action.payload
-      }
+        isNetworkError: action.payload,
+      };
 
     default:
       return {

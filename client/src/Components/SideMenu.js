@@ -7,26 +7,24 @@ import { RiContactsLine } from "react-icons/ri";
 import { BsChatSquareDots } from "react-icons/bs";
 import { CgClose, CgMenu } from "react-icons/cg";
 import Toggler from "./Toggler";
-
-
 import { IoLogOutOutline } from "react-icons/io5";
-
-
 // redux
 import { useDispatch, useSelector } from "react-redux";
 import { signOut } from "../Redux/Reducer/Auth/auth.action";
 import { toggleTab } from "../Redux/Reducer/Tab/tabAction";
 
-
 const SideMenu = () => {
-  const [menuIcon, setMenuIcon] = useState();
+  const [menuIcon, setMenuIcon] = useState(false);
 
-  const tabIndex = useSelector((state)=> state.tabReducer);
+  const tabIndex = useSelector((state) => state.tabReducer);
 
-  const activeTab = (index) => {
-    dispatch(toggleTab(index))
+  const dispatch = useDispatch();
+  const activeTab = (id) => {
+    dispatch(toggleTab(id));
   };
 
+  // Removed the "Favourite" entry (AiOutlineStar)
+  // Keep ids for other items the same so they don't shift
   const sideIconsList = [
     {
       id: 1,
@@ -34,12 +32,7 @@ const SideMenu = () => {
       title: "Profile",
     },
     {
-      id: 2,
-      icon: AiOutlineStar,
-      title: "Favourite",
-    },
-    {
-      id: 3,
+      id: 3, // kept id 3 (was Chats before)
       icon: BsChatSquareDots,
       title: "Chats",
     },
@@ -52,20 +45,15 @@ const SideMenu = () => {
       id: 5,
       icon: AiOutlineSetting,
       title: "Setting",
-
     },
   ];
-  const dispatch = useDispatch();
 
   const handleLogout = () => {
     dispatch(signOut());
-
   };
-
 
   return (
     <Wrapper>
-     
       <div
         className={
           menuIcon
@@ -105,21 +93,28 @@ const SideMenu = () => {
           </div>
           <div className="side-menu-list">
             <ul className="flex flex-col justify-between gap-4">
-              {sideIconsList.map((items, index) => (
+              {sideIconsList.map((items) => (
                 <li
-
-                  key={index}
+                  key={items.id}
                   className="side-menu-item"
                   title={items.title}
-                  onClick={() => activeTab(index+1)}
+                  onClick={() => activeTab(items.id)}
                 >
-
-                  <div to={items.title} className={index === 2 && tabIndex === 0 ? "nav-link active" : (tabIndex === (index + 1) ? "nav-link active" : "nav-link")} onClick={() => setMenuIcon(false)}>
-
+                  <div
+                    // keep the mobile close behavior
+                    onClick={() => setMenuIcon(false)}
+                    className={
+                      // preserve old behavior: if tabIndex === 0, highlight Chats (id 3)
+                      items.id === 3 && tabIndex === 0
+                        ? "nav-link active"
+                        : tabIndex === items.id
+                        ? "nav-link active"
+                        : "nav-link"
+                    }
+                  >
                     <items.icon className="icon" />
                   </div>
                 </li>
-
               ))}
 
               {/* Theme mode */}
@@ -143,12 +138,12 @@ const SideMenu = () => {
           </div>
         </div>
       </div>
-     
     </Wrapper>
   );
 };
 
 const Wrapper = styled.section`
+  /* (keep your existing styles unchanged) */
   .side-menu {
     max-width: 100px;
     height: 100vh;

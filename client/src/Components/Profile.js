@@ -2,12 +2,15 @@ import React from "react";
 import styled from "styled-components";
 // import { MdOutlineEmail } from "react-icons/md";
 // import { FcAbout, FcContacts } from "react-icons/fc";
-import { AiFillContacts, AiFillInfoCircle, AiTwotoneMail } from "react-icons/ai";
+import {
+  AiFillContacts,
+  AiFillInfoCircle,
+  AiTwotoneMail,
+} from "react-icons/ai";
 import { useSelector } from "react-redux";
 import { RxCross2 } from "react-icons/rx";
 
 const Profile = (props) => {
- 
   // console.log(user);
   return (
     <Wrapper className="profile-tab dynamic-sidebar">
@@ -17,12 +20,12 @@ const Profile = (props) => {
           <p>Personal Information</p>
         </div>
         <div className="icon p-1 flex items-start h-full justify-start cursor-pointer">
-              <div
-                className="p-1 bg-white text-black rounded-full"
-                onClick={props.closeModal}
-              >
-                <RxCross2 />
-              </div>
+          <div
+            className="p-1 bg-white text-black rounded-full"
+            onClick={props.closeModal}
+          >
+            <RxCross2 />
+          </div>
         </div>
       </div>
       <div className="user-details overflow-y-scroll ">
@@ -77,13 +80,13 @@ export default Profile;
 const Wrapper = styled.div`
   animation: fadeInLeft 1s;
 
-  .chat-menu{
-    .icon{
+  .chat-menu {
+    .icon {
       display: none;
     }
   }
-  .user-details{
-    height: calc(100vh - 200px)
+  .user-details {
+    height: calc(100vh - 200px);
   }
   .user-profile-img {
     width: 150px;
@@ -96,8 +99,8 @@ const Wrapper = styled.div`
     border-bottom: 1px solid rgba(${({ theme }) => theme.colors.border});
     background-color: ${({ theme }) => theme.colors.bg.primary};
 
-    .icon{
-      color: ${({ theme }) => theme.colors.primaryRgb}
+    .icon {
+      color: ${({ theme }) => theme.colors.primaryRgb};
     }
   }
   @media (max-width: 500px) {
@@ -105,18 +108,19 @@ const Wrapper = styled.div`
       margin: 10px 40px 0px 40px;
       padding: 0;
     }
-    p{
+    p {
       font-size: 1rem;
     }
     .intro {
       padding: 1rem 0rem;
     }
   }
-  @media (min-width: 500px) and (max-width: ${({ theme }) => theme.media.mobile}) {
+  @media (min-width: 500px) and (max-width: ${({ theme }) =>
+      theme.media.mobile}) {
     .details {
       margin: 10px 50px 0px 50px;
     }
-    p{
+    p {
       font-size: 1rem;
     }
     .intro {
@@ -124,4 +128,3 @@ const Wrapper = styled.div`
     }
   }
 `;
-

@@ -17,18 +17,18 @@ const Dropdown = (props) => {
     (globalState) => globalState.chat.selectedChat
   );
 
-  const handleClickMarkAsFavourites = () => {
-    toast.success("We are working this feature. Available Soon", {
-      position: "top-right",
-      autoClose: 1000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
-    });
-  };
+  // const handleClickMarkAsFavourites = () => {
+  //   toast.success("We are working this feature. Available Soon", {
+  //     position: "top-right",
+  //     autoClose: 1000,
+  //     hideProgressBar: false,
+  //     closeOnClick: true,
+  //     pauseOnHover: true,
+  //     draggable: true,
+  //     progress: undefined,
+  //     theme: "light",
+  //   });
+  // };
   const handleClickDeleteChat = () => {
     toast.success("We are working this feature. Available Soon", {
       position: "top-right",
@@ -89,7 +89,7 @@ const Dropdown = (props) => {
                 </button>
               )}
             </Menu.Item>
-            <Menu.Item>
+            {/* <Menu.Item>
               {({ active }) => (
                 <button
                   className={`${
@@ -107,7 +107,7 @@ const Dropdown = (props) => {
                   </h5>
                 </button>
               )}
-            </Menu.Item>
+            </Menu.Item> */}
             <Menu.Item>
               {({ active }) => (
                 <button

@@ -7,63 +7,8 @@ const Footer = () => {
   return (
     <Wrapper id="footer">
       <div className="footer-container flex flex-col justify-between items-center">
-        <div className="footer-block flex flex-col flex-wrap justify-center">
-          <div className="logo-footer-content">
-            <div
-              className="logo flex justify-center items-center"
-              data-aos="fade-up"
-              data-aos-delay="100"
-            >
-              <a href="/">
-                <img src="/images/logo.png" alt="logo" />
-              </a>
-            </div>
-          </div>
-
-          <div className="links">
-            <div className="footer-content" data-aos="fade-up">
-              <ul>
-                <li data-aos="fade-up" data-aos-delay="200">
-                  <Link to="home" className="navlink">
-                    Home
-                  </Link>
-                </li>
-                <li data-aos="fade-up" data-aos-delay="400">
-                  <Link to="features" className="navlink">
-                    Features
-                  </Link>
-                </li>
-                <li data-aos="fade-up" data-aos-delay="600">
-                  <Link to="team" className="navlink">
-                    Team
-                  </Link>
-                </li>
-                <li data-aos="fade-up" data-aos-delay="800">
-                  <Link to="contact" className="navlink">
-                    Contact
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="links">
-            <div className="social-links">
-              <ul>
-                <li data-aos="fade-up" data-aos-delay="900">
-                  <a
-                    href="https://github.com/Nitesh52221/E-Talk"
-                    title="github"
-                  >
-                    <BsGithub />
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        <div className="footer-block flex flex-col flex-wrap justify-center"></div>
       </div>
-
       <div className="footer-copywrite ">
         <div className="custom-container flex justify-center items-center">
           <div className="footer-bottom text-center">

@@ -147,10 +147,9 @@ const Wrapper = styled.div`
 
   @media (max-width: 800px) {
     .contact-list {
-    height: calc(100vh - 300px);
+      height: calc(100vh - 300px);
+    }
   }
-  }
-
 `;
 
 export default Contacts;

@@ -7,9 +7,7 @@ import { toast } from "react-toastify";
 import styled from "styled-components";
 
 // import { getSender, getSenderPic } from "../HelperFunction/chat.Helper";
-import {
-  removeUserFromGroup,
-} from "../Redux/Reducer/Chat/chat.action";
+import { removeUserFromGroup } from "../Redux/Reducer/Chat/chat.action";
 
 const GroupProfile = (props) => {
   const dispatch = useDispatch();
@@ -25,7 +23,6 @@ const GroupProfile = (props) => {
   // console.log(props.sender);
   // console.log(props.loggedUser)
   const [query, setQuary] = useState("");
-
 
   const loggedUser = useSelector((globalState) => globalState.user.userDetails);
   // console.log(loggedUser);
@@ -180,21 +177,22 @@ const GroupProfile = (props) => {
                               <>
                                 <span className="text-xs">Admin</span>
                               </>
-                            ) : 
-                            <>
-                              {
-                                groupAdmin.id === loggedUser._id ? <>
-                                <span
-                                  className="text-xs cursor-pointer"
-                                  onClick={() => removeFromGroup(item)}
-                                >
-                                  Remove
-                                </span>
+                            ) : (
+                              <>
+                                {groupAdmin.id === loggedUser._id ? (
+                                  <>
+                                    <span
+                                      className="text-xs cursor-pointer"
+                                      onClick={() => removeFromGroup(item)}
+                                    >
+                                      Remove
+                                    </span>
+                                  </>
+                                ) : (
+                                  <></>
+                                )}
                               </>
-                              : <></>
-                              }
-                            </>
-                            }
+                            )}
                           </div>
                         </div>
                       </li>

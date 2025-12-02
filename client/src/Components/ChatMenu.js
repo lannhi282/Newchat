@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Profile from "./Profile";
-import Favourite from "./Favourite";
+// import Favourite from "./Favourite";
 import Contacts from "./Contacts";
 import Setting from "./Setting";
 import Default from "./Default";
@@ -23,15 +23,16 @@ const ChatMenu = () => {
   const tabIndex = useSelector((state) => state.tabReducer);
   const result = useSelector((globalState) => globalState.chat.newUser);
   const user = useSelector((globalState) => globalState.user.userDetails);
-  const UserLoading = useSelector((globalState)=> globalState.chat.isUserLoading);
-  const [showResult, setShowResult] = useState(false)
+  const UserLoading = useSelector(
+    (globalState) => globalState.chat.isUserLoading
+  );
+  const [showResult, setShowResult] = useState(false);
   const chat = useSelector((globalState) => globalState.chat.chats);
 
   const dispatch = useDispatch();
 
   const handleChange = (e) => {
     setSearch(e.target.value);
-
   };
 
   useEffect(() => {
@@ -45,66 +46,51 @@ const ChatMenu = () => {
       });
       return;
     }
-    setShowResult(true)
+    setShowResult(true);
     dispatch(fetchUser(search));
   };
 
   const createNewChat = async (item) => {
+    const UserExist = chat.some((elem) => elem.users[1]._id === item._id);
 
-    const UserExist = chat.some((elem)=> elem.users[1]._id === item._id)
-  
-    if(UserExist){
+    if (UserExist) {
       toast.error("contact already exist", {
         autoClose: 1000,
       });
-      return
-    }
-    else{
+      return;
+    } else {
       toast.success("contact successfully added", {
         autoClose: 1000,
       });
     }
-    
+
     await dispatch(createChat(item._id));
     await dispatch(fetchChats());
     await dispatch(toggleTab(3));
   };
 
   useEffect(() => {
-   if(tabIndex !== 4 || !search){
-    setSearch("")
-    dispatch(fetchUserClear())
-   }
-   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tabIndex, search])
-  
+    if (tabIndex !== 4 || !search) {
+      setSearch("");
+      dispatch(fetchUserClear());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabIndex, search]);
 
   return (
     <>
       <Wrapper className="chat-menu-section ">
         <div className="tab-content">
           <div className={tabIndex === 1 ? "tab-pane active" : "tab-pane "}>
-            <Profile 
-             pic={
-                   user.pic
-                  }
-                  name = {
-                    user.name
-                  }
-                  email = {
-                  user.email
-                  }
-                  about ={
-                  user.about
-                  }
-                  contact ={
-                  user.contact
-                  }
-             />
+            <Profile
+              pic={user.pic}
+              name={user.name}
+              email={user.email}
+              about={user.about}
+              contact={user.contact}
+            />
           </div>
-          <div className={tabIndex === 2 ? "tab-pane active" : "tab-pane "}>
-            <Favourite />
-          </div>
+
           <div
             className={
               tabIndex === 3 || tabIndex === 0 ? "tab-pane active" : "tab-pane"
@@ -119,7 +105,7 @@ const ChatMenu = () => {
               handleClick={handleClick}
               searchResult={searchResult}
               createNewChat={createNewChat}
-              UserLoading = {UserLoading}
+              UserLoading={UserLoading}
               showResult={showResult}
             />
           </div>
@@ -165,7 +151,7 @@ const Wrapper = styled.section`
     .icon {
       font-size: 1.5rem;
       color: ${({ theme }) => theme.colors.heading};
-      &:hover{
+      &:hover {
         color: ${({ theme }) => theme.colors.primaryRgb};
       }
     }

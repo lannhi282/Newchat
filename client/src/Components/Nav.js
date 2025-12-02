@@ -27,48 +27,6 @@ function Nav() {
           </li>
 
           <li>
-            <Link
-              to="features"
-              activeClass="active"
-              smooth={true}
-              offset={-50}
-              duration={500}
-              className="navbar-link "
-              onClick={() => setMenuIcon(false)}
-            >
-              Features
-            </Link>
-          </li>
-
-          <li>
-            <Link
-              to="team"
-              activeClass="active"
-              smooth={true}
-              offset={-50}
-              duration={500}
-              className="navbar-link "
-              onClick={() => setMenuIcon(false)}
-            >
-              Team
-            </Link>
-          </li>
-
-          <li>
-            <Link
-              to="contact"
-              activeClass="active"
-              smooth={true}
-              offset={-50}
-              duration={500}
-              className="navbar-link "
-              onClick={() => setMenuIcon(false)}
-            >
-              Contact
-            </Link>
-          </li>
-
-          <li>
             <NavLink to="/auth" className="navbar-link">
               <Button className="button">Login</Button>
             </NavLink>
@@ -104,7 +62,6 @@ function Nav() {
         <div className="mobile-navbar-btn ml-10">
           <Toggler className="mobile-nav-icon" />
         </div>
-        
       </div>
     </Navbar>
   );
@@ -137,7 +94,6 @@ const Navbar = styled.nav`
         border-bottom: 2px solid ${({ theme }) => theme.colors.white};
         color: ${({ theme }) => theme.colors.white};
       }
-     
 
       .button {
         font-size: 1.1rem;
@@ -152,9 +108,9 @@ const Navbar = styled.nav`
         }
       }
     }
-    .navbar-link.mode-toggler{
-        font-size: 2rem;
-      }
+    .navbar-link.mode-toggler {
+      font-size: 2rem;
+    }
   }
 
   .navbar-lists li {
@@ -167,7 +123,7 @@ const Navbar = styled.nav`
         }
       }
     }
-    &:nth-child(7){
+    &:nth-child(7) {
       font-size: 1.5rem;
     }
   }
@@ -216,9 +172,9 @@ const Navbar = styled.nav`
       visibility: hidden;
       opacity: 0;
       transform: translateX(100%);
-     
+
       /* transform-origin: top; */
-      .button{
+      .button {
         width: 150px !important;
         font-size: 2rem !important;
         padding: 0 !important;
@@ -239,10 +195,10 @@ const Navbar = styled.nav`
       .navbar-link {
         font-size: 2.2rem;
         color: ${({ theme }) => theme.colors.heading};
-        &:hover{
-        color: ${({ theme }) => theme.colors.cyan} !important;
-        border-bottom: none !important;
-      }
+        &:hover {
+          color: ${({ theme }) => theme.colors.cyan} !important;
+          border-bottom: none !important;
+        }
       }
       .mode-toggler {
         display: none;

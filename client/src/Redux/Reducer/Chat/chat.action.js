@@ -143,6 +143,3 @@ export const clearSelectChatAction = () => async (dispatch) => {
 //     return dispatch({ type: "ERROR", payload: error });
 //   }
 // };
-
-
-

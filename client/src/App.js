@@ -9,9 +9,9 @@ import { ThemeProvider } from "styled-components";
 import { GlobalStyle } from "./GlobalStyle/GlobalStyle";
 import React, { Suspense, useEffect, useState } from "react";
 import Loading from "./Components/Loading";
-import Team from "./Components/Team";
-import Contact from "./Components/Contact";
-import Features from "./Components/Features";
+// import Team from "./Components/Team";
+// import Contact from "./Components/Contact";
+// import Features from "./Components/Features";
 import { useSelector } from "react-redux";
 
 import { useDispatch } from "react-redux";
@@ -212,9 +212,7 @@ function App() {
                 path="/reset-password/:token"
                 element={<ResetPassword />}
               />
-              <Route path="/features" element={<Features />} />
-              <Route path="/team" element={<Team />} />
-              <Route path="/contact" element={<Contact />} />
+
               <Route path="/auth" element={<AuthPage />}>
                 <Route path="" element={<Login />} />
                 <Route path="signup" element={<Signup />} />

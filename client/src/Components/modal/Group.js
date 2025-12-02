@@ -15,7 +15,6 @@ import { AiOutlinePlus } from "react-icons/ai";
 import { toast } from "react-toastify";
 import Spinner from "../../Styles/Spinner";
 
-
 const Group = () => {
   const dispatch = useDispatch();
   let [isOpen, setIsOpen] = useState(false);
