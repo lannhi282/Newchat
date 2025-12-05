@@ -24,18 +24,6 @@ const Dropdown = (props) => {
   );
   const loggedUser = useSelector((state) => state.user.userDetails);
 
-  // const handleClickMarkAsFavourites = () => {
-  //   toast.success("We are working this feature. Available Soon", {
-  //     position: "top-right",
-  //     autoClose: 1000,
-  //     hideProgressBar: false,
-  //     closeOnClick: true,
-  //     pauseOnHover: true,
-  //     draggable: true,
-  //     progress: undefined,
-  //     theme: "light",
-  //   });
-  // };
   const handleClickDeleteChat = async () => {
     if (!senderUser?._id) {
       toast.error("No chat selected", {
@@ -160,25 +148,7 @@ const Dropdown = (props) => {
                 </button>
               )}
             </Menu.Item>
-            {/* <Menu.Item>
-              {({ active }) => (
-                <button
-                  className={`${
-                    active
-                      ? "active flex items-center justify-between"
-                      : "flex items-center justify-between"
-                  }`}
-                  onClick={handleClickMarkAsFavourites}
-                >
-                  <div className="icon-btn btn-outline-danger mr-4">
-                    <MdFavorite className="icon inline" />
-                  </div>{" "}
-                  <h5 className="relative w-full text-left">
-                    Mark As Favourites
-                  </h5>
-                </button>
-              )}
-            </Menu.Item> */}
+
             <Menu.Item>
               {({ active }) => (
                 <button
@@ -196,30 +166,25 @@ const Dropdown = (props) => {
                 </button>
               )}
             </Menu.Item>
-            <Menu.Item>
-              {({ active }) => (
-                <button
-                  className={`${
-                    active
-                      ? "active flex items-center justify-between"
-                      : "flex items-center justify-between"
-                  }`}
-                  onClick={handleClickLeaveGroup}
-                >
-                  <div className="icon-btn btn-outline-light mr-4">
-                    {/* <ImBlocked className="icon inline" /> */}
-                    {sender.isGroupChat ? (
+            {sender?.isGroupChat && (
+              <Menu.Item>
+                {({ active }) => (
+                  <button
+                    className={`${
+                      active
+                        ? "active flex items-center justify-between"
+                        : "flex items-center justify-between"
+                    }`}
+                    onClick={handleClickLeaveGroup}
+                  >
+                    <div className="icon-btn btn-outline-light mr-4">
                       <ImExit className="icon inline" />
-                    ) : (
-                      <ImBlocked className="icon inline" />
-                    )}
-                  </div>{" "}
-                  <h5 className="relative w-full text-left">
-                    {sender.isGroupChat ? "Leave Group " : "Block"}
-                  </h5>
-                </button>
-              )}
-            </Menu.Item>
+                    </div>{" "}
+                    <h5 className="relative w-full text-left">Leave Group</h5>
+                  </button>
+                )}
+              </Menu.Item>
+            )}
           </Menu.Items>
         </Transition>
       </Menu>
