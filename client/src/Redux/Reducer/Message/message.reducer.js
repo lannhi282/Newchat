@@ -6,9 +6,13 @@ import {
   SHOW_NETWORK_ERROR,
   SHOW_TOOGLE_LOADING,
   UPDATE_GET_ALL_MESSAGE,
+  GET_SPAM_MESSAGES,
+  MARK_AS_SPAM,
+  MARK_AS_NOT_SPAM,
 } from "./message.type";
 const initialState = {
   allMessages: [],
+  spamMessages: [],
   createdMessage: {},
   isLoading: false,
   sNetworkError: false,
@@ -49,6 +53,32 @@ const messageReducer = (state = initialState, action) => {
       return {
         ...state,
         isNetworkError: action.payload,
+      };
+
+    case GET_SPAM_MESSAGES:
+      return {
+        ...state,
+        spamMessages: action.payload,
+      };
+
+    case MARK_AS_SPAM:
+      return {
+        ...state,
+        allMessages: state.allMessages.map((msg) =>
+          msg._id === action.payload._id ? action.payload : msg
+        ),
+        spamMessages: [...state.spamMessages, action.payload],
+      };
+
+    case MARK_AS_NOT_SPAM:
+      return {
+        ...state,
+        allMessages: state.allMessages.map((msg) =>
+          msg._id === action.payload._id ? action.payload : msg
+        ),
+        spamMessages: state.spamMessages.filter(
+          (msg) => msg._id !== action.payload._id
+        ),
       };
 
     default:

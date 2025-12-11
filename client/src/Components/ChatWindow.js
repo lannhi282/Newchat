@@ -17,6 +17,8 @@ import { useDispatch } from "react-redux";
 import {
   sendMessge,
   updateGetAllChats,
+  markMessageAsSpam,
+  markMessageAsNotSpam,
 } from "../Redux/Reducer/Message/message.action";
 
 import { Dialog, Menu, Transition } from "@headlessui/react";
@@ -178,6 +180,14 @@ const ChatWindow = () => {
     if (file) {
       setSelectedFile(file);
     }
+  };
+
+  const handleMarkAsSpam = async (messageId) => {
+    await dispatch(markMessageAsSpam(messageId));
+  };
+
+  const handleMarkAsNotSpam = async (messageId) => {
+    await dispatch(markMessageAsNotSpam(messageId));
   };
   useEffect(() => {
     if (inputRef.current !== null) {
@@ -405,9 +415,40 @@ const ChatWindow = () => {
                                             </a>
                                           )}
                                         {item.content && (
-                                          <span className="mb-0 chat-content text-sm font-medium text-left">
-                                            {item.content}
-                                          </span>
+                                          <>
+                                            <span className="mb-0 chat-content text-sm font-medium text-left">
+                                              {item.content}
+                                            </span>
+                                            {item.isSpam && (
+                                              <div className="spam-warning mt-2 text-xs text-orange-500 flex items-center">
+                                                ⚠️ Spam detected
+                                                <button
+                                                  onClick={() =>
+                                                    handleMarkAsNotSpam(
+                                                      item._id
+                                                    )
+                                                  }
+                                                  className="ml-2 text-blue-500 underline"
+                                                >
+                                                  Not spam
+                                                </button>
+                                              </div>
+                                            )}
+                                            {!item.isSpam &&
+                                              !isMyMessage(
+                                                loggedUser,
+                                                item
+                                              ) && (
+                                                <button
+                                                  onClick={() =>
+                                                    handleMarkAsSpam(item._id)
+                                                  }
+                                                  className="mt-1 text-xs text-gray-400 hover:text-red-500"
+                                                >
+                                                  Report spam
+                                                </button>
+                                              )}
+                                          </>
                                         )}
                                       </div>
                                     </div>

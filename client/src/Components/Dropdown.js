@@ -3,6 +3,7 @@ import { ImBlocked, ImExit } from "react-icons/im";
 import { CgProfile } from "react-icons/cg";
 import { BiDotsVerticalRounded } from "react-icons/bi";
 import { RiDeleteBin6Line } from "react-icons/ri";
+import { MdReportGmailerrorred } from "react-icons/md";
 import { useSelector, useDispatch } from "react-redux";
 
 import { Menu, Transition } from "@headlessui/react";
@@ -14,6 +15,8 @@ import {
   clearSelectChatAction,
   removeUserFromGroup,
   fetchChats,
+  markAsSpamAction,
+  markAsNotSpamAction,
 } from "../Redux/Reducer/Chat/chat.action";
 
 const Dropdown = (props) => {
@@ -112,6 +115,43 @@ const Dropdown = (props) => {
       });
     }
   };
+
+  const handleMarkAsSpam = async () => {
+    if (!senderUser?._id) {
+      toast.error("No chat selected", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+      return;
+    }
+
+    if (!window.confirm("Mark this chat as spam?")) return;
+
+    const loadingToast = toast.loading("Marking as spam...");
+
+    try {
+      await dispatch(markAsSpamAction(senderUser._id));
+      await dispatch(clearSelectChatAction());
+
+      toast.dismiss(loadingToast);
+      toast.success("Chat marked as spam", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (error) {
+      console.error("Mark spam error:", error);
+      toast.dismiss(loadingToast);
+      toast.error("Failed to mark as spam", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+    }
+  };
+
   useEffect(() => {
     setSender(senderUser);
   }, [senderUser]);
@@ -145,6 +185,24 @@ const Dropdown = (props) => {
                     <CgProfile className="icon inline" />
                   </div>{" "}
                   <h5 className="relative w-full text-left">view contact</h5>
+                </button>
+              )}
+            </Menu.Item>
+
+            <Menu.Item>
+              {({ active }) => (
+                <button
+                  className={`${
+                    active
+                      ? "active flex items-center justify-between"
+                      : "flex items-center justify-between"
+                  }`}
+                  onClick={handleMarkAsSpam}
+                >
+                  <div className="icon-btn btn-outline-danger mr-4">
+                    <MdReportGmailerrorred className="icon inline" />
+                  </div>{" "}
+                  <h5 className="relative w-full text-left">Mark as Spam</h5>
                 </button>
               )}
             </Menu.Item>

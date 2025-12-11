@@ -178,3 +178,56 @@ export const leaveGroupAction = (chatId, userId) => async (dispatch) => {
     return dispatch({ type: "ERROR", payload: error });
   }
 };
+
+// Mark chat as spam
+export const markAsSpamAction = (chatId) => async (dispatch) => {
+  try {
+    const response = await axios({
+      method: "PUT",
+      url: `${SERVER_ACCESS_BASE_URL}/api/chat/spam`,
+      data: { chatId },
+    });
+
+    return dispatch({
+      type: "MARK_AS_SPAM",
+      payload: response.data.chat,
+    });
+  } catch (error) {
+    return dispatch({ type: "ERROR", payload: error });
+  }
+};
+
+// Mark chat as not spam
+export const markAsNotSpamAction = (chatId) => async (dispatch) => {
+  try {
+    const response = await axios({
+      method: "PUT",
+      url: `${SERVER_ACCESS_BASE_URL}/api/chat/notspam`,
+      data: { chatId },
+    });
+
+    return dispatch({
+      type: "MARK_AS_NOT_SPAM",
+      payload: response.data.chat,
+    });
+  } catch (error) {
+    return dispatch({ type: "ERROR", payload: error });
+  }
+};
+
+// Fetch spam chats
+export const fetchSpamChats = () => async (dispatch) => {
+  try {
+    const response = await axios({
+      method: "GET",
+      url: `${SERVER_ACCESS_BASE_URL}/api/chat/spam`,
+    });
+
+    return dispatch({
+      type: "FETCH_SPAM_CHATS",
+      payload: response.data,
+    });
+  } catch (error) {
+    return dispatch({ type: "ERROR", payload: error });
+  }
+};

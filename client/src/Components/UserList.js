@@ -31,14 +31,13 @@ const UserList = ({
             {chatList
               .filter((item) => item && item._id) // FIX: Lọc bỏ undefined
               .filter((item) => {
-                return query.toLowerCase() === "" || searchOpen === false
-                  ? item
-                  : (!item.isGroupChat
-                      ? getSender(loggedUser, item.users)
-                      : item.chatName
-                    )
-                      .toLowerCase()
-                      .includes(query.toLowerCase());
+                if (query.toLowerCase() === "" || !searchOpen) {
+                  return true;
+                }
+                const searchText = !item.isGroupChat
+                  ? getSender(loggedUser, item.users)
+                  : item.chatName;
+                return searchText.toLowerCase().includes(query.toLowerCase());
               })
               .map((item, index) => (
                 <li

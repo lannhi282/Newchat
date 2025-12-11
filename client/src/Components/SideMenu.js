@@ -5,6 +5,7 @@ import { CgProfile } from "react-icons/cg";
 import { AiOutlineSetting, AiOutlineStar } from "react-icons/ai";
 import { RiContactsLine } from "react-icons/ri";
 import { BsChatSquareDots } from "react-icons/bs";
+import { MdReportGmailerrorred } from "react-icons/md";
 import { CgClose, CgMenu } from "react-icons/cg";
 import Toggler from "./Toggler";
 import { IoLogOutOutline } from "react-icons/io5";
@@ -35,6 +36,11 @@ const SideMenu = () => {
       id: 3, // kept id 3 (was Chats before)
       icon: BsChatSquareDots,
       title: "Chats",
+    },
+    {
+      id: 6,
+      icon: MdReportGmailerrorred,
+      title: "Spam Messages",
     },
     {
       id: 4,

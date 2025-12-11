@@ -10,6 +10,10 @@ const messageSchema = mongoose.Schema(
     fileName: { type: String },
     fileType: { type: String },
     cloudinary_id: { type: String },
+    isSpam: { type: Boolean, default: false },
+    spamScore: { type: Number, default: 0 },
+    markedAsSpamBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    markedAsNotSpamBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );
