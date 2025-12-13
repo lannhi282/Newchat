@@ -165,26 +165,6 @@ const Dropdown = (props) => {
               )}
             </Menu.Item>
 
-            {/* ❌ XÓA MENU ITEM NÀY:
-            <Menu.Item>
-              {({ active }) => (
-                <button
-                  className={`${
-                    active
-                      ? "active flex items-center justify-between"
-                      : "flex items-center justify-between"
-                  }`}
-                  onClick={handleMarkAsSpam}
-                >
-                  <div className="icon-btn btn-outline-danger mr-4">
-                    <MdReportGmailerrorred className="icon inline" />
-                  </div>{" "}
-                  <h5 className="relative w-full text-left">Mark as Spam</h5>
-                </button>
-              )}
-            </Menu.Item>
-            */}
-
             <Menu.Item>
               {({ active }) => (
                 <button

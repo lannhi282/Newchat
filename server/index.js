@@ -105,12 +105,22 @@ io.on("connection", (socket) => {
   );
   socket.on("stop typing", (room) => socket.in(room).emit("stop typing"));
 
+  // ✅ SỬA Ở ĐÂY - CHẶN TIN NHẮN SPAM
   socket.on("new message", (newMessageRecieved) => {
     var chat = newMessageRecieved.chat;
     if (!chat) {
       return;
     }
 
+    // ⛔ KIỂM TRA NẾU TIN NHẮN BỊ BLOCKED (SPAM) -> KHÔNG GỬI ĐẾN NGƯỜI NHẬN
+    if (newMessageRecieved.blocked === true) {
+      console.log(
+        `⛔ Blocked spam message from ${newMessageRecieved.sender.name} - not sending to recipients`
+      );
+      return; // Dừng lại, không emit đến người khác
+    }
+
+    // ✅ CHỈ GỬI TIN NHẮN KHÔNG BỊ BLOCKED
     chat.users.forEach((user) => {
       if (user._id == newMessageRecieved.sender._id) {
         return;

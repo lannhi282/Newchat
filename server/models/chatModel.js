@@ -17,13 +17,6 @@ const chatModel = mongoose.Schema(
         deletedAt: { type: Date, default: Date.now },
       },
     ],
-    // ❌ XÓA field này:
-    // spamMarkedBy: [
-    //   {
-    //     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    //     markedAt: { type: Date, default: Date.now },
-    //   },
-    // ],
   },
   { timestamps: true }
 );

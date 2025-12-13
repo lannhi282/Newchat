@@ -26,8 +26,6 @@ import UserProfile from "./SlideMenu/UserProfile";
 import { MdOutlineArrowBackIos } from "react-icons/md";
 import io from "socket.io-client";
 import { useRef } from "react";
-// import { clearSelectChatAction } from "../Redux/Reducer/Chat/chat.action";
-// import { clearSelectChatAction } from "../Redux/Reducer/Chat/chat.action";
 import Spinner from "../Styles/Spinner";
 const SERVER_ACCESS_BASE_URL = process.env.REACT_APP_SERVER_ACCESS_BASE_URL;
 
@@ -37,12 +35,9 @@ var socket, selectedChatCompare;
 const ChatWindow = () => {
   const dispatch = useDispatch();
   const inputRef = createRef();
-
   const messageEndRef = useRef(null);
 
-  // all the message for a particular chat
   const [message, setMessage] = useState([]);
-  // message data require for sending data
   const [newMessage, setNewMessage] = useState("");
   const [sender, setSender] = useState();
   const [cursorPosition, setCursorPosition] = useState(0);
@@ -53,6 +48,9 @@ const ChatWindow = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [user, setUser] = useState();
   const [selectedFile, setSelectedFile] = useState(null);
+
+  // ❌ XÓA STATE NÀY - KHÔNG CẦN NỮA
+  // const [blockedMessages, setBlockedMessages] = useState([]);
 
   const senderUser = useSelector(
     (globalState) => globalState.chat.selectedChat
@@ -111,25 +109,18 @@ const ChatWindow = () => {
     }
   };
 
-  // console.log(user)
-
   useEffect(() => {
     getUserId();
   });
 
-  //  console.log(sender?.users)
-
-  // for input changing
   const handleChange = (e) => {
     setNewMessage(e.target.value);
 
-    // typing Indicator
     if (!socketConnected) return;
 
     if (!typing && user && user.length > 0 && user[0]) {
       setTyping(true);
       socket.emit("typing", user[0]._id);
-      console.log(typing);
     }
 
     let lastTypingTime = new Date().getTime();
@@ -148,11 +139,10 @@ const ChatWindow = () => {
         socket.emit("stop typing", user[0]._id);
         setTyping(false);
       }
-      // console.log(typing);
     }, timerLength);
   };
 
-  // Sending message
+  // ✅ SENDING MESSAGE - ĐƠN GIẢN HƠN
   const handleClick = async () => {
     if (!newMessage && !selectedFile) {
       if (user && user.length > 0 && user[0]) {
@@ -170,6 +160,7 @@ const ChatWindow = () => {
       formData.append("file", selectedFile);
     }
 
+    // ✅ GỬI TIN NHẮN - Backend sẽ tự động xử lý spam
     setNewMessage("");
     setSelectedFile(null);
     await dispatch(sendMessge(formData));
@@ -189,11 +180,11 @@ const ChatWindow = () => {
   const handleMarkAsNotSpam = async (messageId) => {
     await dispatch(markMessageAsNotSpam(messageId));
   };
+
   useEffect(() => {
     if (inputRef.current !== null) {
       inputRef.current.selectionEnd = cursorPosition;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cursorPosition]);
 
   useEffect(() => {
@@ -211,7 +202,6 @@ const ChatWindow = () => {
     socket.on("connected", () => setSocketConnected(true));
     socket.on("typing", () => setIsTyping(true));
     socket.on("stop typing", () => setIsTyping(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -220,15 +210,12 @@ const ChatWindow = () => {
         !selectedChatCompare ||
         selectedChatCompare._id !== newMessageRecieved.chat._id
       ) {
-        // we will give notification
         console.log(newMessageRecieved);
       } else {
         setTimeout(() => {
           setCount(count + 1);
         }, 1000);
-        // console.log(message);
         dispatch(updateGetAllChats(newMessageRecieved));
-        // console.log(message);
       }
     };
     socket.on("message recieved", eventHandler);
@@ -243,24 +230,14 @@ const ChatWindow = () => {
   }, [senderUser]);
 
   useEffect(() => {
-    // console.log(sender);
-    // dispatch(getAllChats(sender));
-    // we will decide we have to give notification to user or render the new msg
     selectedChatCompare = sender;
-    // console.log(senderUser);
   }, [sender]);
 
   useEffect(() => {
     setMessage(allMessage);
     socket.emit("join chat", sender);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allMessage]);
 
-  useEffect(() => {
-    // console.log(message);
-  }, [message]);
-
-  // for automatic scrolling down last message
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({
       behaviour: "smooth",
@@ -270,8 +247,17 @@ const ChatWindow = () => {
   useEffect(() => {
     socket.emit("new message", createdMessage);
     dispatch(updateGetAllChats(createdMessage));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [createdMessage]);
+
+  // ✅ LỌC TIN NHẮN: Người gửi thấy TẤT CẢ, người nhận CHỈ thấy tin không bị blocked
+  const displayMessages = message.filter((msg) => {
+    // Nếu là tin nhắn của mình -> hiển thị tất cả (kể cả blocked)
+    if (msg.sender._id === loggedUser._id) {
+      return true;
+    }
+    // Nếu là tin nhắn của người khác -> chỉ hiển thị tin không bị blocked
+    return !msg.blocked;
+  });
 
   return (
     <Wrapper className="" id="user-chat">
@@ -292,7 +278,6 @@ const ChatWindow = () => {
                   </div>
                   <h4>Welcome to E-Talk Chat App</h4>
                   <p>Click on user to start chat.</p>
-                  {/* <Button>Get Started</Button> */}
                 </div>
               </div>
             </div>
@@ -301,7 +286,6 @@ const ChatWindow = () => {
           <>
             <div className="chat-content flex">
               <div className="w-full h-full position-relative">
-                {/* user-chat-topbar */}
                 <div className="user-chat-topbar p-3 p-lg-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center justify-center">
@@ -318,7 +302,6 @@ const ChatWindow = () => {
                       >
                         <div className="chat-avatar mr-4">
                           <img
-                            // src="https://themes.pixelstrap.com/chitchat/assets/images/avtar/2.jpg"
                             src={
                               !sender.isGroupChat
                                 ? getSenderPic(loggedUser, sender.users)
@@ -335,7 +318,6 @@ const ChatWindow = () => {
                               : getSender(loggedUser, sender.users)}
                           </h6>
                           <p className="mb-0 truncate">
-                            {/* status to be set later */}
                             <small className="truncate">
                               {sender.isGroupChat && sender.users ? (
                                 sender.users.map((item, index) => (
@@ -344,13 +326,7 @@ const ChatWindow = () => {
                                   </span>
                                 ))
                               ) : (
-                                <>
-                                  {/* {socketConnected ? (
-                                    <>offline</>
-                                  ) : (
-                                    <>Offline</>
-                                  )} */}
-                                </>
+                                <></>
                               )}
                             </small>
                           </p>
@@ -376,7 +352,7 @@ const ChatWindow = () => {
                       </>
                     ) : (
                       <>
-                        {message.map((item, index) =>
+                        {displayMessages.map((item, index) =>
                           isMyMessage(loggedUser, item) && item.sender.pic ? (
                             <>
                               <li key={index} className="chat-list right">
@@ -419,7 +395,22 @@ const ChatWindow = () => {
                                             <span className="mb-0 chat-content text-sm font-medium text-left">
                                               {item.content}
                                             </span>
-                                            {item.isSpam && (
+
+                                            {/* ⚠️ HIỂN THỊ CẢNH BÁO SPAM */}
+                                            {item.blocked && item.isSpam && (
+                                              <div className="spam-blocked-warning mt-2 p-2 bg-red-100 border border-red-400 rounded text-xs">
+                                                <div className="flex items-center text-red-700 font-semibold">
+                                                  ⚠️ Spam detected - Không gửi
+                                                  được
+                                                </div>
+                                                {/* <div className="text-red-600 mt-1">
+                                                  Tin nhắn này chứa nội dung
+                                                  spam (Score: {item.spamScore})
+                                                </div> */}
+                                              </div>
+                                            )}
+
+                                            {item.isSpam && !item.blocked && (
                                               <div className="spam-warning mt-2 text-xs text-orange-500 flex items-center">
                                                 ⚠️ Spam detected
                                                 <button
@@ -434,34 +425,18 @@ const ChatWindow = () => {
                                                 </button>
                                               </div>
                                             )}
-                                            {!item.isSpam &&
-                                              !isMyMessage(
-                                                loggedUser,
-                                                item
-                                              ) && (
-                                                <button
-                                                  onClick={() =>
-                                                    handleMarkAsSpam(item._id)
-                                                  }
-                                                  className="mt-1 text-xs text-gray-400 hover:text-red-500"
-                                                >
-                                                  Report spam
-                                                </button>
-                                              )}
                                           </>
                                         )}
                                       </div>
                                     </div>
                                     <div className="conversation-name ">
                                       <small className=" mb-0">
-                                        {/* {getTime(item.createdAt)} */}
                                         {moment(item.createdAt)
                                           .format("DD/MMM/YYYY , h:mm a")
                                           .toUpperCase()}
                                       </small>
 
                                       <span className="ml-2 text-xs user-name">
-                                        {/* {item.sender.name} */}
                                         you
                                       </span>
                                     </div>
@@ -518,7 +493,6 @@ const ChatWindow = () => {
                                         {item.sender.name}
                                       </span>
                                       <small className="ml-2 mb-0">
-                                        {/* {getTime(item.createdAt)} */}
                                         {moment(item.createdAt)
                                           .format("DD/MMM/YYYY , h:mm a")
                                           .toUpperCase()}
@@ -531,37 +505,6 @@ const ChatWindow = () => {
                           )
                         )}
                         <div ref={messageEndRef}></div>
-                        {/* {
-                        isTyping? <>
-
-                        <li className="chat-list">
-                              <div className="conversation-list">
-                                <div className="chat-avatar mr-4">
-                                  <img
-                                    src={sender.pic}
-                                    alt=""
-                                    className="rounded-full"
-                                  />
-                                </div>
-                                <div className="user-chat-content">
-                                  <div className="flex mb-3">
-                                    <div className="chat-wrap-content w-20 h-12 flex justify-center items-center ">
-                                      <span className="relative mb-0  text-sm font-medium text-left ">
-                                          <span className="typing-loader"></span>
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="conversation-name">
-                                    <span className="ml-2 text-xs user-name">
-                                      {sender.name}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </li>
-
-                        </> : <> </>
-                      } */}
                       </>
                     )}
                   </ul>
@@ -570,7 +513,6 @@ const ChatWindow = () => {
                 <div className="chat-input-section p-5 p-lg-6">
                   <div className="flex justify-between items-center">
                     <div className="chat-input flex">
-                      {/* File upload button */}
                       <div className="links-list-item">
                         <label
                           htmlFor="file-input"
@@ -586,7 +528,6 @@ const ChatWindow = () => {
                           style={{ display: "none" }}
                         />
                       </div>
-                      {/* emoji button */}
                       <div className="links-list-item">
                         <Menu>
                           <Menu.Button className="flex justify-center items-center btn emoji-btn mr-2">
@@ -611,7 +552,6 @@ const ChatWindow = () => {
                         </Menu>
                       </div>
                     </div>
-                    {/* input field */}
                     <div className="position-relative w-full">
                       <input
                         placeholder={
@@ -627,7 +567,6 @@ const ChatWindow = () => {
                         ref={inputRef}
                       />
                     </div>
-                    {/* submit button */}
                     <div
                       className="chat-input-links ml-2"
                       onClick={handleClick}
@@ -701,6 +640,11 @@ const Wrapper = styled.section`
   .loader {
     width: 100%;
     height: 100%;
+  }
+  /* ⚠️ STYLE CHO CẢNH BÁO SPAM BLOCKED */
+  .spam-blocked-warning {
+    animation: shake 0.5s;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
   }
   .three-dot-btn {
     display: flex;

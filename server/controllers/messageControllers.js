@@ -12,7 +12,6 @@ const allMessages = asyncHandler(async (req, res) => {
   try {
     const chat = await Chat.findById(req.params.chatId);
 
-    // Tìm thời điểm user xóa lịch sử (nếu có)
     const userDeletedHistory = chat.deletedHistoryBy?.find(
       (item) => item.userId.toString() === req.user._id.toString()
     );
@@ -21,7 +20,6 @@ const allMessages = asyncHandler(async (req, res) => {
       chat: req.params.chatId,
     };
 
-    // Nếu user đã xóa lịch sử, chỉ lấy tin nhắn sau thời điểm đó
     if (userDeletedHistory) {
       query.createdAt = { $gt: userDeletedHistory.deletedAt };
     }
@@ -51,13 +49,20 @@ const sendMessage = asyncHandler(async (req, res) => {
     sender: req.user._id,
     content: content || "",
     chat: chatId,
+    isSpam: false,
+    blocked: false,
   };
 
-  // Check for spam if content exists
+  // ✅ KIỂM TRA SPAM
   if (content && content.trim().length > 0) {
     const spamDetails = spamClassifier.getSpamDetails(content);
-    newMessage.isSpam = spamDetails.isSpam;
-    newMessage.spamScore = spamDetails.spamScore;
+
+    if (spamDetails.isSpam) {
+      // 🔴 ĐÁNH DẤU LÀ SPAM VÀ BLOCKED
+      newMessage.isSpam = true;
+      newMessage.blocked = true;
+      newMessage.spamScore = spamDetails.spamScore;
+    }
   }
 
   // Handle file upload if present
@@ -79,6 +84,7 @@ const sendMessage = asyncHandler(async (req, res) => {
   }
 
   try {
+    // ✅ LƯU TIN NHẮN VÀO DATABASE (kể cả spam)
     var message = await Message.create(newMessage);
 
     message = await message.populate("sender", "name pic");
@@ -88,9 +94,12 @@ const sendMessage = asyncHandler(async (req, res) => {
       select: "name pic email",
     });
 
-    await Chat.findByIdAndUpdate(chatId, {
-      latestMessage: message,
-    });
+    // ⚠️ CHỈ CẬP NHẬT LATEST MESSAGE NẾU KHÔNG PHẢI SPAM
+    if (!message.blocked) {
+      await Chat.findByIdAndUpdate(chatId, {
+        latestMessage: message,
+      });
+    }
 
     res.json(message);
   } catch (error) {
@@ -136,7 +145,6 @@ const markAsSpam = asyncHandler(async (req, res) => {
       message.markedAsSpamBy.push(req.user._id);
     }
 
-    // Remove from not spam list if exists
     message.markedAsNotSpamBy = message.markedAsNotSpamBy.filter(
       (userId) => userId.toString() !== req.user._id.toString()
     );
@@ -166,7 +174,6 @@ const markAsNotSpam = asyncHandler(async (req, res) => {
       message.markedAsNotSpamBy.push(req.user._id);
     }
 
-    // Remove from spam list if exists
     message.markedAsSpamBy = message.markedAsSpamBy.filter(
       (userId) => userId.toString() !== req.user._id.toString()
     );

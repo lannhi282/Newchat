@@ -21,19 +21,16 @@ export const getAllChats = (selectedChat) => async (dispatch) => {
       url: `${SERVER_ACCESS_BASE_URL}/api/message/${selectedChat._id}`,
     });
     dispatch(loadingToggleAction(false));
-    // console.log(allMessage);
     return dispatch({ type: GET_ALL_MESSAGE, payload: allMessage.data });
   } catch (error) {
     dispatch(showNetworkError(true));
     return dispatch({ type: "ERROR", payload: error });
   }
-  //   }
 };
 
 // updateing get all message
 export const updateGetAllChats = (messageRecived) => async (dispatch) => {
   try {
-    // console.log(messageRecived);
     if (!messageRecived.sender) {
       return;
     }
@@ -48,7 +45,7 @@ export const updateGetAllChats = (messageRecived) => async (dispatch) => {
   }
 };
 
-// send message
+// send message - ✅ ĐƠN GIẢN HƠN
 export const sendMessge = (messageData) => async (dispatch) => {
   try {
     const isFormData = messageData instanceof FormData;
