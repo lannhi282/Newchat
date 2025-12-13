@@ -37,11 +37,7 @@ const SideMenu = () => {
       icon: BsChatSquareDots,
       title: "Chats",
     },
-    {
-      id: 6,
-      icon: MdReportGmailerrorred,
-      title: "Spam Messages",
-    },
+
     {
       id: 4,
       icon: RiContactsLine,

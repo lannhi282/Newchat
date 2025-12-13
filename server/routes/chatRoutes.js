@@ -8,9 +8,6 @@ const {
   addToGroup,
   deleteChat,
   leaveGroup,
-  markAsSpam,
-  markAsNotSpam,
-  fetchSpamChats,
 } = require("../controllers/chatControllers");
 const { protect } = require("../middleware/authMiddleware");
 
@@ -24,8 +21,5 @@ router.route("/rename").put(protect, renameGroup);
 router.route("/groupremove").put(protect, removeFromGroup);
 router.route("/groupadd").put(protect, addToGroup);
 router.route("/leavegroup").put(protect, leaveGroup);
-router.route("/spam").put(protect, markAsSpam);
-router.route("/notspam").put(protect, markAsNotSpam);
-router.route("/spam").get(protect, fetchSpamChats);
 
 module.exports = router;

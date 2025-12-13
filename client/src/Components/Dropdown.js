@@ -1,22 +1,21 @@
 import React, { useEffect, useState, Fragment } from "react";
-import { ImBlocked, ImExit } from "react-icons/im";
+import { ImExit } from "react-icons/im";
 import { CgProfile } from "react-icons/cg";
 import { BiDotsVerticalRounded } from "react-icons/bi";
 import { RiDeleteBin6Line } from "react-icons/ri";
-import { MdReportGmailerrorred } from "react-icons/md";
+// ❌ XÓA import này:
+// import { MdReportGmailerrorred } from "react-icons/md";
 import { useSelector, useDispatch } from "react-redux";
 
 import { Menu, Transition } from "@headlessui/react";
-import UserProfile from "./SlideMenu/UserProfile";
-import { MdFavorite } from "react-icons/md";
 import { toast } from "react-toastify";
 import {
   deleteChatAction,
   clearSelectChatAction,
   removeUserFromGroup,
-  fetchChats,
-  markAsSpamAction,
-  markAsNotSpamAction,
+  // ❌ XÓA 2 imports này:
+  // markAsSpamAction,
+  // markAsNotSpamAction,
 } from "../Redux/Reducer/Chat/chat.action";
 
 const Dropdown = (props) => {
@@ -52,7 +51,7 @@ const Dropdown = (props) => {
         });
         setTimeout(() => {
           window.location.reload();
-        }, 500); // Đợi 0.5s để toast hiển thị trước reload
+        }, 500);
       } else {
         await dispatch(clearSelectChatAction());
         toast.success("Chat deleted successfully", {
@@ -105,7 +104,7 @@ const Dropdown = (props) => {
 
       setTimeout(() => {
         window.location.reload();
-      }, 500); // Đợi toast hiển thị trước reload
+      }, 500);
     } catch (error) {
       console.error("Leave group error:", error);
       toast.dismiss(loadingToast);
@@ -116,45 +115,22 @@ const Dropdown = (props) => {
     }
   };
 
-  const handleMarkAsSpam = async () => {
-    if (!senderUser?._id) {
-      toast.error("No chat selected", {
-        position: "top-right",
-        autoClose: 2000,
-      });
-      return;
-    }
-
-    if (!window.confirm("Mark this chat as spam?")) return;
-
-    const loadingToast = toast.loading("Marking as spam...");
-
-    try {
-      await dispatch(markAsSpamAction(senderUser._id));
-      await dispatch(clearSelectChatAction());
-
-      toast.dismiss(loadingToast);
-      toast.success("Chat marked as spam", {
-        position: "top-right",
-        autoClose: 2000,
-      });
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
-    } catch (error) {
-      console.error("Mark spam error:", error);
-      toast.dismiss(loadingToast);
-      toast.error("Failed to mark as spam", {
-        position: "top-right",
-        autoClose: 2000,
-      });
-    }
-  };
+  // ❌ XÓA FUNCTION NÀY:
+  // const handleMarkAsSpam = async () => {
+  //   if (!senderUser?._id) {
+  //     toast.error("No chat selected", {
+  //       position: "top-right",
+  //       autoClose: 2000,
+  //     });
+  //     return;
+  //   }
+  //   ...
+  // };
 
   useEffect(() => {
     setSender(senderUser);
   }, [senderUser]);
+
   return (
     <>
       <Menu>
@@ -189,6 +165,7 @@ const Dropdown = (props) => {
               )}
             </Menu.Item>
 
+            {/* ❌ XÓA MENU ITEM NÀY:
             <Menu.Item>
               {({ active }) => (
                 <button
@@ -206,6 +183,7 @@ const Dropdown = (props) => {
                 </button>
               )}
             </Menu.Item>
+            */}
 
             <Menu.Item>
               {({ active }) => (
@@ -224,6 +202,7 @@ const Dropdown = (props) => {
                 </button>
               )}
             </Menu.Item>
+
             {sender?.isGroupChat && (
               <Menu.Item>
                 {({ active }) => (

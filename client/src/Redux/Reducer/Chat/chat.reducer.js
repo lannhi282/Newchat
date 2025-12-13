@@ -89,29 +89,6 @@ const chatReducer = (state = initialState, action) => {
         selectedChat: {},
       };
 
-    case "MARK_AS_SPAM":
-      return {
-        ...state,
-        chats: state.chats.filter((chat) => chat._id !== action.payload._id),
-        spamChats: [...state.spamChats, action.payload],
-        selectedChat: {},
-      };
-
-    case "MARK_AS_NOT_SPAM":
-      return {
-        ...state,
-        spamChats: state.spamChats.filter(
-          (chat) => chat._id !== action.payload._id
-        ),
-        chats: [...state.chats, action.payload],
-      };
-
-    case "FETCH_SPAM_CHATS":
-      return {
-        ...state,
-        spamChats: action.payload,
-      };
-
     default:
       return {
         ...state,
