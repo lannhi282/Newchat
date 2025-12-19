@@ -56,6 +56,28 @@ const ChatWindow = () => {
     (globalState) => globalState.chat.selectedChat
   );
 
+  useEffect(() => {
+    if (senderUser) {
+      console.log("🔍 Selected Chat FULL:", senderUser);
+      console.log("🔍 Users array:", senderUser.users);
+
+      // ✅ Log từng user chi tiết
+      if (senderUser.users && Array.isArray(senderUser.users)) {
+        senderUser.users.forEach((user, index) => {
+          console.log(`👤 User ${index + 1}:`, {
+            type: typeof user,
+            isString: typeof user === "string",
+            isObject: typeof user === "object",
+            value: user,
+            hasName: user?.name,
+            hasPic: user?.pic,
+            hasId: user?._id,
+          });
+        });
+      }
+    }
+  }, [senderUser]);
+
   const loggedUser = useSelector((globalState) => globalState.user.userDetails);
   const theme = useSelector((state) => state.themeReducer.darkThemeEnabled);
   const allMessage = useSelector(
@@ -111,8 +133,7 @@ const ChatWindow = () => {
 
   useEffect(() => {
     getUserId();
-  });
-
+  }, [sender, loggedUser]); // ✅ Thêm dependencies
   const handleChange = (e) => {
     setNewMessage(e.target.value);
 
@@ -223,7 +244,7 @@ const ChatWindow = () => {
     return () => {
       socket.off("message recieved", eventHandler);
     };
-  });
+  }, [selectedChatCompare, count, dispatch]);
 
   useEffect(() => {
     setSender(senderUser);

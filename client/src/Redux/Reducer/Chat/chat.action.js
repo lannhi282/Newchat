@@ -16,16 +16,32 @@ export const loadingUserAction = (state) => {
 };
 
 // fetching all the chats for a particaular user
+
 export const fetchChats = () => async (dispatch) => {
   try {
     const chats = await axios({
       method: "GET",
       url: `${SERVER_ACCESS_BASE_URL}/api/chat`,
     });
-    // console.log(chats.data);
+
+    console.log("📥 Fetched chats from backend:", chats.data);
+
+    // Kiểm tra từng chat
+    chats.data.forEach((chat, index) => {
+      if (!chat.isGroupChat) {
+        console.log(`Chat ${index + 1}:`, {
+          chatId: chat._id,
+          users: chat.users,
+          usersLength: chat.users?.length,
+          user1: chat.users?.[0]?.name,
+          user2: chat.users?.[1]?.name,
+        });
+      }
+    });
 
     return dispatch({ type: FETCH_CHATS, payload: chats.data });
   } catch (error) {
+    console.error("❌ Fetch chats error:", error);
     return dispatch({ type: "ERROR", payload: error });
   }
 };
@@ -144,6 +160,7 @@ export const clearSelectChatAction = () => async (dispatch) => {
 //   }
 // };
 // Delete chat
+
 export const deleteChatAction = (chatId) => async (dispatch) => {
   try {
     const response = await axios({
@@ -152,10 +169,13 @@ export const deleteChatAction = (chatId) => async (dispatch) => {
       data: { chatId },
     });
 
-    return dispatch({
-      type: "DELETE_CHAT",
+    // ✅ Dispatch action để update latestMessage trong chat list
+    dispatch({
+      type: "MESSAGES_DELETED",
       payload: chatId,
     });
+
+    return response.data;
   } catch (error) {
     return dispatch({ type: "ERROR", payload: error });
   }

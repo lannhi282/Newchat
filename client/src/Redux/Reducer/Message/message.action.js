@@ -125,6 +125,17 @@ export const markMessageAsSpam = (messageId) => async (dispatch) => {
   }
 };
 
+// Clear all messages (khi delete chat)
+export const clearAllMessages = () => async (dispatch) => {
+  try {
+    return dispatch({
+      type: "CLEAR_ALL_MESSAGES",
+      payload: [],
+    });
+  } catch (error) {
+    return dispatch({ type: "ERROR", payload: error });
+  }
+};
 // Mark message as not spam
 export const markMessageAsNotSpam = (messageId) => async (dispatch) => {
   try {

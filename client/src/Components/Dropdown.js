@@ -3,8 +3,6 @@ import { ImExit } from "react-icons/im";
 import { CgProfile } from "react-icons/cg";
 import { BiDotsVerticalRounded } from "react-icons/bi";
 import { RiDeleteBin6Line } from "react-icons/ri";
-// ❌ XÓA import này:
-// import { MdReportGmailerrorred } from "react-icons/md";
 import { useSelector, useDispatch } from "react-redux";
 
 import { Menu, Transition } from "@headlessui/react";
@@ -13,10 +11,9 @@ import {
   deleteChatAction,
   clearSelectChatAction,
   removeUserFromGroup,
-  // ❌ XÓA 2 imports này:
-  // markAsSpamAction,
-  // markAsNotSpamAction,
+  fetchChats,
 } from "../Redux/Reducer/Chat/chat.action";
+import { clearAllMessages } from "../Redux/Reducer/Message/message.action";
 
 const Dropdown = (props) => {
   const [sender, setSender] = useState();
@@ -36,31 +33,32 @@ const Dropdown = (props) => {
     }
 
     const confirmMessage = senderUser.isGroupChat
-      ? "Clear all chat history? You will still remain in the group and receive new messages."
-      : "Delete this chat? It will be removed from your chat list.";
+      ? "Delete all messages in this group? You will still remain in the group."
+      : "Delete all messages in this chat? The conversation will remain in your list.";
 
     if (!window.confirm(confirmMessage)) return;
 
     try {
+      // ✅ Xóa messages trên server
       await dispatch(deleteChatAction(senderUser._id));
 
-      if (senderUser.isGroupChat) {
-        toast.success("Chat history cleared", {
-          position: "top-right",
-          autoClose: 2000,
-        });
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
-      } else {
-        await dispatch(clearSelectChatAction());
-        toast.success("Chat deleted successfully", {
-          position: "top-right",
-          autoClose: 2000,
-        });
-      }
+      // ✅ Clear messages trong Redux state
+      dispatch(clearAllMessages());
+
+      // ✅ Đóng chat window để tránh lỗi
+      dispatch(clearSelectChatAction());
+
+      // ✅ Fetch lại danh sách chats để cập nhật latestMessage
+      await dispatch(fetchChats());
+
+      toast.success("Messages deleted successfully", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+
+      // ✅ KHÔNG cần reload - UI tự động update
     } catch (error) {
-      toast.error("Failed to delete chat", {
+      toast.error("Failed to delete messages", {
         position: "top-right",
         autoClose: 2000,
       });
@@ -102,9 +100,8 @@ const Dropdown = (props) => {
         autoClose: 2000,
       });
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      // ✅ Clear selected chat
+      dispatch(clearSelectChatAction());
     } catch (error) {
       console.error("Leave group error:", error);
       toast.dismiss(loadingToast);
@@ -114,18 +111,6 @@ const Dropdown = (props) => {
       });
     }
   };
-
-  // ❌ XÓA FUNCTION NÀY:
-  // const handleMarkAsSpam = async () => {
-  //   if (!senderUser?._id) {
-  //     toast.error("No chat selected", {
-  //       position: "top-right",
-  //       autoClose: 2000,
-  //     });
-  //     return;
-  //   }
-  //   ...
-  // };
 
   useEffect(() => {
     setSender(senderUser);
@@ -178,7 +163,7 @@ const Dropdown = (props) => {
                   <div className="icon-btn btn-outline-danger mr-4">
                     <RiDeleteBin6Line className="icon inline" />
                   </div>{" "}
-                  <h5 className="relative w-full text-left">Delete Chat</h5>
+                  <h5 className="relative w-full text-left">Delete Messages</h5>
                 </button>
               )}
             </Menu.Item>

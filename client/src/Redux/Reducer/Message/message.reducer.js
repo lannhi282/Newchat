@@ -38,10 +38,11 @@ const messageReducer = (state = initialState, action) => {
         allMessages: [...state.allMessages, action.payload],
       };
 
-    case CLEAR_ALL_MESSAGE:
+    case "CLEAR_ALL_MESSAGES":
       return {
         ...state,
         allMessages: [],
+        createdMessage: {},
       };
 
     case SHOW_TOOGLE_LOADING:

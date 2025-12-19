@@ -29,7 +29,20 @@ const UserList = ({
         {chatList.length !== 0 ? (
           <div className="mb-4" onClick={() => userChatShow()}>
             {chatList
-              .filter((item) => item && item._id) // FIX: Lọc bỏ undefined
+              // ✅ Lọc các chat không hợp lệ
+              .filter((item) => {
+                if (!item || !item._id) return false;
+                // ✅ Đảm bảo chat 1-1 có đủ users
+                if (
+                  !item.isGroupChat &&
+                  (!item.users || item.users.length < 2)
+                ) {
+                  console.warn("Invalid chat data:", item);
+                  return false;
+                }
+                return true;
+              })
+              // ✅ Lọc theo search query
               .filter((item) => {
                 if (query.toLowerCase() === "" || !searchOpen) {
                   return true;
@@ -61,18 +74,21 @@ const UserList = ({
                         }
                         alt="user_logo"
                       />
-                      {!item.isGroupChat && item.users && (
-                        <span
-                          className={`online-status ${
-                            onlineUsers.includes(
-                              item.users.find((u) => u._id !== loggedUser._id)
-                                ?._id
-                            )
-                              ? "online"
-                              : "offline"
-                          }`}
-                        ></span>
-                      )}
+                      {/* ✅ Kiểm tra an toàn hơn cho online status */}
+                      {!item.isGroupChat &&
+                        item.users &&
+                        item.users.length >= 2 && (
+                          <span
+                            className={`online-status ${
+                              onlineUsers.includes(
+                                item.users.find((u) => u._id !== loggedUser._id)
+                                  ?._id
+                              )
+                                ? "online"
+                                : "offline"
+                            }`}
+                          ></span>
+                        )}
                     </div>
                     <div className="details w-3/4">
                       <Highlighter
@@ -90,8 +106,9 @@ const UserList = ({
                           : item.chatName}
                       </Highlighter>
                       <p className=" text-xs truncate whitespace-nowrap overflow-hidden">
+                        {/* ✅ Kiểm tra latestMessage an toàn */}
                         <span className="text-xs">
-                          {item.latestMessage != null
+                          {item.latestMessage?.sender?.name
                             ? `${
                                 item.latestMessage.sender.name ===
                                 loggedUser.name
@@ -102,15 +119,12 @@ const UserList = ({
                         </span>
                         <span className="text-xs truncate">
                           {" "}
-                          {item.latestMessage != null
-                            ? item.latestMessage.content
-                            : ""}
+                          {item.latestMessage?.content || ""}
                         </span>
                       </p>
                     </div>
                     <div className="data-status h-full avatar-group">
-                      {/* FIX: Dùng item thay vì chat[index] */}
-                      {item.isGroupChat ? (
+                      {item.isGroupChat && item.users ? (
                         <div className="flex -space-x-4">
                           {item.users.slice(0, 3).map((user, idx) => (
                             <img
@@ -129,7 +143,7 @@ const UserList = ({
                       ) : null}
 
                       <p>
-                        {item.latestMessage
+                        {item.latestMessage?.createdAt
                           ? moment(item.latestMessage.createdAt).format(
                               "DD/MM/YY"
                             )

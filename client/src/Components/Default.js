@@ -23,7 +23,23 @@ const Default = () => {
   const chat = useSelector((globalState) => globalState.chat.chats);
   const loggedUser = useSelector((globalState) => globalState.user.userDetails);
   const result = useSelector((globalState) => globalState.chat.selectedChat);
+  // ✅ THÊM DEBUG NÀY
+  useEffect(() => {
+    console.log("📋 Chat List from Redux:", chat);
 
+    // Kiểm tra từng chat
+    chat.forEach((item, index) => {
+      if (!item.isGroupChat) {
+        console.log(`Chat ${index + 1}:`, {
+          chatId: item._id,
+          chatName: item.chatName,
+          users: item.users,
+          usersLength: item.users?.length,
+          hasUsers: !!item.users,
+        });
+      }
+    });
+  }, [chat]);
   useEffect(() => {
     setchatList(chat);
   }, [chat]);
@@ -39,7 +55,6 @@ const Default = () => {
 
     // alert(selectedChat._id)
   }, [selectedChat]);
-
 
   return (
     <Wrapper className="default dynamic-sidebar">

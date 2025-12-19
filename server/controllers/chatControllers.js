@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const { remove } = require("../models/chatModel");
 const Chat = require("../models/chatModel");
 const User = require("../models/userModel");
+const Message = require("../models/messageModel"); // ✅ Thêm import Message model
 
 //@description     Create or fetch One to One Chat
 //@route           POST /api/chat/
@@ -9,7 +10,6 @@ const User = require("../models/userModel");
 const accessChat = asyncHandler(async (req, res) => {
   const { userId } = req.body;
   if (!userId) {
-    // console.log("UserId param not sent with request");
     return res.sendStatus(400);
   }
 
@@ -56,22 +56,39 @@ const accessChat = asyncHandler(async (req, res) => {
 //@access          Protected
 const fetchChats = asyncHandler(async (req, res) => {
   try {
-    Chat.find({
+    // ✅ QUAN TRỌNG: Luôn populate users đầy đủ
+    const chats = await Chat.find({
       users: { $elemMatch: { $eq: req.user._id } },
-      // Chỉ loại trừ chat 1-1 đã bị ẩn
-      deletedBy: { $ne: req.user._id },
     })
-      .populate("users", "-password")
+      .populate("users", "-password") // ✅ Đảm bảo users được populate
       .populate("groupAdmin", "-password")
       .populate("latestMessage")
-      .sort({ updatedAt: -1 })
-      .then(async (results) => {
-        results = await User.populate(results, {
-          path: "latestMessage.sender",
-          select: "name pic email",
-        });
-        res.status(200).send(results);
-      });
+      .sort({ updatedAt: -1 });
+
+    // ✅ Populate sender của latestMessage (nếu có)
+    const results = await User.populate(chats, {
+      path: "latestMessage.sender",
+      select: "name pic email",
+    });
+
+    // ✅ Filter bỏ chats không hợp lệ trước khi gửi về frontend
+    const validChats = results.filter((chat) => {
+      // Đảm bảo chat có users array hợp lệ
+      if (!chat.users || chat.users.length === 0) {
+        console.warn(`Invalid chat detected: ${chat._id} - Missing users`);
+        return false;
+      }
+      // Chat 1-1 phải có đúng 2 users
+      if (!chat.isGroupChat && chat.users.length !== 2) {
+        console.warn(
+          `Invalid 1-1 chat: ${chat._id} - ${chat.users.length} users`
+        );
+        return false;
+      }
+      return true;
+    });
+
+    res.status(200).send(validChats);
   } catch (error) {
     res.status(400);
     throw new Error(error.message);
@@ -82,14 +99,11 @@ const fetchChats = asyncHandler(async (req, res) => {
 //@route           POST /api/chat/group
 //@access          Protected
 const createGroupChat = asyncHandler(async (req, res) => {
-  // console.log(req);
-  // console.log(req.body.name, req.body.users);
   if (!req.body.users || !req.body.name) {
     return res.status(400).send({ message: "Please Fill all the feilds" });
   }
 
   var users = JSON.parse(req.body.users);
-  // console.log(users);
 
   if (users.length < 2) {
     return res
@@ -113,7 +127,6 @@ const createGroupChat = asyncHandler(async (req, res) => {
 
     res.status(200).json(fullGroupChat);
   } catch (error) {
-    // console.log(error);
     res.status(400);
     throw new Error(error.message);
   }
@@ -184,6 +197,7 @@ const removeFromGroup = asyncHandler(async (req, res) => {
   }
 });
 
+// ✅ FIXED: Chỉ xóa NỘI DUNG tin nhắn, KHÔNG xóa user
 const deleteChat = asyncHandler(async (req, res) => {
   const { chatId } = req.body;
 
@@ -206,45 +220,19 @@ const deleteChat = asyncHandler(async (req, res) => {
       throw new Error("You are not part of this chat");
     }
 
-    if (chat.isGroupChat) {
-      // ===== NHÓM: Xóa lịch sử tin nhắn =====
-      await Chat.findByIdAndUpdate(chatId, {
-        $addToSet: {
-          deletedHistoryBy: {
-            userId: req.user._id,
-            deletedAt: new Date(),
-          },
-        },
-      });
+    // ✅ XÓA TẤT CẢ TIN NHẮN trong chat này
+    await Message.deleteMany({ chat: chatId });
 
-      res.status(200).json({
-        success: true,
-        message: "Chat history cleared. You will still receive new messages.",
-        chatId: chatId,
-        type: "history_cleared",
-      });
-    } else {
-      // ===== CHAT 1-1: Ẩn chat =====
-      const updatedChat = await Chat.findByIdAndUpdate(
-        chatId,
-        {
-          $addToSet: { deletedBy: req.user._id },
-        },
-        { new: true }
-      );
+    // ✅ RESET latestMessage về null
+    await Chat.findByIdAndUpdate(chatId, {
+      latestMessage: null,
+    });
 
-      // Nếu cả 2 người đều xóa → xóa hẳn khỏi DB
-      if (updatedChat.deletedBy.length === updatedChat.users.length) {
-        await Chat.findByIdAndDelete(chatId);
-      }
-
-      res.status(200).json({
-        success: true,
-        message: "Chat deleted successfully",
-        chatId: chatId,
-        type: "chat_deleted",
-      });
-    }
+    res.status(200).json({
+      success: true,
+      message: "All messages deleted successfully. Chat remains in your list.",
+      chatId: chatId,
+    });
   } catch (error) {
     res.status(400);
     throw new Error(error.message);

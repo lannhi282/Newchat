@@ -10,6 +10,7 @@ import {
   SELECT_CHAT,
   SHOW_USER_LOADING,
   DELETE_CHAT,
+  MESSAGES_DELETED,
 } from "./chat.type";
 const initialState = {
   chats: [],
@@ -41,7 +42,13 @@ const chatReducer = (state = initialState, action) => {
         ...state,
         newUser: [],
       };
-
+    case "MESSAGES_DELETED":
+      return {
+        ...state,
+        chats: state.chats.map((chat) =>
+          chat._id === action.payload ? { ...chat, latestMessage: null } : chat
+        ),
+      };
     case CREATE_CHAT:
       return {
         ...state,
@@ -92,6 +99,18 @@ const chatReducer = (state = initialState, action) => {
     default:
       return {
         ...state,
+      };
+    case "MESSAGES_DELETED":
+      return {
+        ...state,
+        chats: state.chats.map((chat) =>
+          chat._id === action.payload ? { ...chat, latestMessage: null } : chat
+        ),
+        // ✅ Đảm bảo selectedChat cũng được update nếu đang mở
+        selectedChat:
+          state.selectedChat?._id === action.payload
+            ? { ...state.selectedChat, latestMessage: null }
+            : state.selectedChat,
       };
   }
 };
