@@ -9,6 +9,6 @@ export const SHOW_USER_LOADING = "SHOW_USER_LOADING";
 export const REMOVE_USER_FROM_GROUP = "REMOVE_USER_FROM_GROUP";
 export const DELETE_CHAT = "DELETE_CHAT";
 export const LEAVE_GROUP = "LEAVE_GROUP";
-
+export const MESSAGES_DELETED = "MESSAGES_DELETED";
 // Mới thêm để xử lý lỗi mạng
 export const SHOW_NETWORK_ERROR = "SHOW_NETWORK_ERROR";

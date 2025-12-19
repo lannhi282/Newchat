@@ -1,13 +1,20 @@
 // ✅ THAY THẾ file chat.Helper.js bằng version an toàn hơn
 
 // To get the sender
+// export const getSender = (loggedUser, users) => {
+//   if (!users || users.length < 2 || !loggedUser) {
+//     return "Unknown User";
+//   }
+//   return users[0]._id === loggedUser._id ? users[1].name : users[0].name;
+// };
 export const getSender = (loggedUser, users) => {
-  if (!users || users.length < 2 || !loggedUser) {
-    return "Unknown User";
+  if (!Array.isArray(users) || users.length < 2 || !loggedUser) {
+    return "";
   }
-  return users[0]._id === loggedUser._id ? users[1].name : users[0].name;
+  return users[0]._id === loggedUser._id
+    ? users[1]?.name || ""
+    : users[0]?.name || "";
 };
-
 // To get the sender pic - ✅ AN TOÀN HƠN
 export const getSenderPic = (loggedUser, users) => {
   // ✅ Kiểm tra đầy đủ

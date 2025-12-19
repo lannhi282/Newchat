@@ -55,7 +55,7 @@ const ChatWindow = () => {
   const senderUser = useSelector(
     (globalState) => globalState.chat.selectedChat
   );
-
+  const hasChat = Boolean(senderUser?._id);
   useEffect(() => {
     if (senderUser) {
       console.log("🔍 Selected Chat FULL:", senderUser);
@@ -231,12 +231,25 @@ const ChatWindow = () => {
         !selectedChatCompare ||
         selectedChatCompare._id !== newMessageRecieved.chat._id
       ) {
-        console.log(newMessageRecieved);
+        console.log("Message from other chat:", newMessageRecieved);
+
+        // ✅ QUAN TRỌNG: Cập nhật latestMessage trong chatList ngay cả khi không mở chat đó
+        dispatch({
+          type: "MESSAGE_RECEIVED",
+          payload: newMessageRecieved,
+        });
       } else {
+        // Đang mở chat này
         setTimeout(() => {
           setCount(count + 1);
         }, 1000);
         dispatch(updateGetAllChats(newMessageRecieved));
+
+        // ✅ QUAN TRỌNG: Cập nhật latestMessage trong chatList
+        dispatch({
+          type: "UPDATE_LATEST_MESSAGE",
+          payload: newMessageRecieved,
+        });
       }
     };
     socket.on("message recieved", eventHandler);
@@ -256,8 +269,10 @@ const ChatWindow = () => {
 
   useEffect(() => {
     setMessage(allMessage);
-    socket.emit("join chat", sender);
-  }, [allMessage]);
+    if (sender && sender._id) {
+      socket.emit("join chat", sender);
+    }
+  }, [allMessage, sender]);
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({
@@ -266,9 +281,17 @@ const ChatWindow = () => {
   }, [message, newMessage]);
 
   useEffect(() => {
-    socket.emit("new message", createdMessage);
-    dispatch(updateGetAllChats(createdMessage));
-  }, [createdMessage]);
+    if (createdMessage && createdMessage._id) {
+      socket.emit("new message", createdMessage);
+      dispatch(updateGetAllChats(createdMessage));
+
+      // ✅ QUAN TRỌNG: Cập nhật latestMessage trong chatList khi gửi tin nhắn
+      dispatch({
+        type: "UPDATE_LATEST_MESSAGE",
+        payload: createdMessage,
+      });
+    }
+  }, [createdMessage, dispatch]);
 
   // ✅ LỌC TIN NHẮN: Người gửi thấy TẤT CẢ, người nhận CHỈ thấy tin không bị blocked
   const displayMessages = message.filter((msg) => {
@@ -283,13 +306,13 @@ const ChatWindow = () => {
   return (
     <Wrapper className="" id="user-chat">
       <div className="chat-window-section">
-        {!sender ? (
+        {!hasChat ? (
           <>
             <div className="chat-welcome-section overflow-x-hidden flex justify-center items-center">
               <div className="flex justify-center items-center p-4">
-                <div className=" flex flex-col justify-center items-center text-center">
+                <div className="flex flex-col justify-center items-center text-center">
                   <div className="avatar mx-auto mb-4">
-                    <div className=" rounded-full">
+                    <div className="rounded-full">
                       <img
                         src="./images/logo2.png"
                         alt="logo"
@@ -322,33 +345,36 @@ const ChatWindow = () => {
                         onClick={openModal}
                       >
                         <div className="chat-avatar mr-4">
-                          <img
-                            src={
-                              !sender.isGroupChat
-                                ? getSenderPic(loggedUser, sender.users)
-                                : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6wQvepXb0gM_Ft1QUOs6UyYJjPOmA-gq5Yw&usqp=CAU"
-                            }
-                            alt="profile"
-                            className=" w-12 h-12 rounded-full"
-                          />
+                          {hasChat && (
+                            <img
+                              src={
+                                sender?.isGroupChat
+                                  ? "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6wQvepXb0gM_Ft1QUOs6UyYJjPOmA-gq5Yw&usqp=CAU"
+                                  : getSenderPic(loggedUser, sender?.users)
+                              }
+                              className="w-12 h-12 rounded-full"
+                              alt="profile"
+                            />
+                          )}
                         </div>
                         <div className="overflow-hidden">
                           <h6 className="mb-0">
-                            {sender.isGroupChat
-                              ? sender.chatName
-                              : getSender(loggedUser, sender.users)}
+                            {hasChat
+                              ? sender?.isGroupChat
+                                ? sender?.chatName
+                                : getSender(loggedUser, sender?.users)
+                              : ""}
                           </h6>
                           <p className="mb-0 truncate">
                             <small className="truncate">
-                              {sender.isGroupChat && sender.users ? (
+                              {hasChat &&
+                                sender?.isGroupChat &&
+                                Array.isArray(sender?.users) &&
                                 sender.users.map((item, index) => (
                                   <span key={index} className="text-sm">
                                     {(index ? ", " : " ") + item.name}
                                   </span>
-                                ))
-                              ) : (
-                                <></>
-                              )}
+                                ))}
                             </small>
                           </p>
                         </div>

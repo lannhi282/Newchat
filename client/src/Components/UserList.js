@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo } from "react";
 import styled from "styled-components";
 import { getSender, getSenderPic } from "../HelperFunction/chat.Helper";
 import { useSelector } from "react-redux";
@@ -16,6 +16,15 @@ const UserList = ({
 }) => {
   const onlineUsers = useSelector((state) => state.onlineUsers.onlineUsers);
 
+  // ✅ Thêm dependency để component re-render khi có thay đổi
+  const memoizedChatList = useMemo(() => {
+    return chatList;
+  }, [
+    chatList,
+    chatList?.length,
+    chatList?.map((c) => c.latestMessage?.content).join(""),
+  ]);
+
   const userChatShow = () => {
     document
       .getElementById("user-chat")
@@ -23,12 +32,17 @@ const UserList = ({
     document.getElementById("user-chat").classList.remove("fadeInRight2");
   };
 
+  // ✅ Log để debug
+  useEffect(() => {
+    console.log("ChatList updated:", chatList);
+  }, [chatList]);
+
   return (
     <Wrapper>
       <ul className="chat-main h-full overflow-x-hidden overflow-y-scroll">
-        {chatList.length !== 0 ? (
+        {memoizedChatList.length !== 0 ? (
           <div className="mb-4" onClick={() => userChatShow()}>
-            {chatList
+            {memoizedChatList
               // ✅ Lọc các chat không hợp lệ
               .filter((item) => {
                 if (!item || !item._id) return false;
@@ -52,10 +66,10 @@ const UserList = ({
                   : item.chatName;
                 return searchText.toLowerCase().includes(query.toLowerCase());
               })
-              .map((item, index) => (
+              .map((item) => (
                 <li
                   onClick={() => setSelectedChat(item)}
-                  key={item._id}
+                  key={`${item._id}-${item.latestMessage?._id || "no-msg"}`}
                   id="chat-box-wrapper"
                   className={
                     result === item

@@ -74,14 +74,14 @@ const SPAM_KEYWORDS = [
 ];
 
 const SPAM_PATTERNS = [
-  /\$\d+/g, // Dollar amounts
-  /https?:\/\/bit\.ly/gi, // Shortened URLs
-  /https?:\/\/tinyurl/gi,
-  /click.*here/gi,
-  /call.*now/gi,
-  /\d{10,}/g, // Long numbers (phone, credit card)
-  /FREE/g, // All caps FREE
-  /!!+/g, // Multiple exclamation marks
+  /\$\d+/i,
+  /https?:\/\/bit\.ly/i,
+  /https?:\/\/tinyurl/i,
+  /click.*here/i,
+  /call.*now/i,
+  /\d{10,}/,
+  /FREE/i,
+  /!!+/,
 ];
 
 class SpamClassifier {
@@ -210,27 +210,17 @@ class SpamClassifier {
   }
 
   isSpam(content) {
-    if (
-      !content ||
-      typeof content !== "string" ||
-      content.trim().length === 0
-    ) {
-      return false;
-    }
+    if (!content?.trim()) return false;
 
-    // Get Bayes classifier prediction
-    const classification = this.classifier.classify(content.toLowerCase());
-
-    // Get spam score
     const spamScore = this.calculateSpamScore(content);
 
-    // Consider spam if:
-    // 1. Bayes classifier says spam AND score > 30
-    // 2. OR spam score > 50
-    const isSpamByBayes = classification === "spam";
-    const isSpamByScore = spamScore > 50;
+    // 🔥 KEYWORD quyết định
+    if (spamScore >= 30) return true;
 
-    return (isSpamByBayes && spamScore > 30) || isSpamByScore;
+    // Bayes chỉ hỗ trợ
+    const classification = this.classifier.classify(content.toLowerCase());
+
+    return classification === "spam" && spamScore >= 15;
   }
 
   getSpamDetails(content) {

@@ -12,6 +12,7 @@ import {
   DELETE_CHAT,
   MESSAGES_DELETED,
 } from "./chat.type";
+
 const initialState = {
   chats: [],
   newUser: [],
@@ -20,7 +21,7 @@ const initialState = {
   selectedChat: {},
   isUserLoading: false,
   removedUserFromGroup: {},
-  spamChats: [], // Added spamChats to initialState
+  spamChats: [],
 };
 
 const chatReducer = (state = initialState, action) => {
@@ -42,13 +43,69 @@ const chatReducer = (state = initialState, action) => {
         ...state,
         newUser: [],
       };
-    case "MESSAGES_DELETED":
+
+    // ✅ Thêm case này để cập nhật latestMessage khi có tin nhắn mới
+    case "MESSAGE_RECEIVED":
+      return {
+        ...state,
+        chats: state.chats.map((chat) => {
+          // Tìm chat có ID trùng với tin nhắn mới
+          if (
+            chat._id === action.payload.chat._id ||
+            chat._id === action.payload.chat
+          ) {
+            return {
+              ...chat,
+              latestMessage: action.payload,
+            };
+          }
+          return chat;
+        }),
+        // ✅ Cập nhật selectedChat nếu đang mở chat đó
+        selectedChat:
+          state.selectedChat._id ===
+          (action.payload.chat._id || action.payload.chat)
+            ? { ...state.selectedChat, latestMessage: action.payload }
+            : state.selectedChat,
+      };
+
+    // ✅ Thêm case này để cập nhật khi GỬI tin nhắn
+    case "MESSAGE_SENT":
+    case "UPDATE_LATEST_MESSAGE": // ✅ Thêm case này cho updateGetAllChats
+      return {
+        ...state,
+        chats: state.chats.map((chat) => {
+          if (
+            chat._id === action.payload.chat._id ||
+            chat._id === action.payload.chat
+          ) {
+            return {
+              ...chat,
+              latestMessage: action.payload,
+            };
+          }
+          return chat;
+        }),
+        selectedChat:
+          state.selectedChat._id ===
+          (action.payload.chat._id || action.payload.chat)
+            ? { ...state.selectedChat, latestMessage: action.payload }
+            : state.selectedChat,
+      };
+
+    case MESSAGES_DELETED:
       return {
         ...state,
         chats: state.chats.map((chat) =>
           chat._id === action.payload ? { ...chat, latestMessage: null } : chat
         ),
+        // ✅ Đảm bảo selectedChat cũng được update nếu đang mở
+        selectedChat:
+          state.selectedChat?._id === action.payload
+            ? { ...state.selectedChat, latestMessage: null }
+            : state.selectedChat,
       };
+
     case CREATE_CHAT:
       return {
         ...state,
@@ -72,22 +129,24 @@ const chatReducer = (state = initialState, action) => {
         ...state,
         selectedChat: action.payload,
       };
+
     case CLEAR_SELECT_CHAT:
       return {
         ...state,
         selectedChat: action.payload,
       };
+
     case SHOW_USER_LOADING:
       return {
         ...state,
         isUserLoading: action.payload,
       };
+
     case DELETE_CHAT:
       return {
         ...state,
-        chats: state.chats.filter((chat) => chat._id !== action.payload),
-        selectedChat:
-          state.selectedChat._id === action.payload ? {} : state.selectedChat,
+        chats: state.chats.filter((c) => c._id !== action.payload),
+        selectedChat: null,
       };
     case "LEAVE_GROUP":
       return {
@@ -97,21 +156,7 @@ const chatReducer = (state = initialState, action) => {
       };
 
     default:
-      return {
-        ...state,
-      };
-    case "MESSAGES_DELETED":
-      return {
-        ...state,
-        chats: state.chats.map((chat) =>
-          chat._id === action.payload ? { ...chat, latestMessage: null } : chat
-        ),
-        // ✅ Đảm bảo selectedChat cũng được update nếu đang mở
-        selectedChat:
-          state.selectedChat?._id === action.payload
-            ? { ...state.selectedChat, latestMessage: null }
-            : state.selectedChat,
-      };
+      return state;
   }
 };
 

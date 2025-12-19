@@ -15,13 +15,18 @@ const Toggler = (props) => {
   const togglerTheme = () => {
     dispatch({ type: TOGGLE_DARKTHEME });
     setToggle(!darkThemeEnabled);
+    // Đóng menu nếu prop setMenuIcon được truyền vào
+    if (props.setMenuIcon && typeof props.setMenuIcon === "function") {
+      props.setMenuIcon(false);
+    }
   };
+
   return (
     <Wrapper onClick={togglerTheme}>
       {toggle === false ? (
-        <RiMoonLine onClick={() => props.setMenuIcon(false)} className="icon" />
+        <RiMoonLine className="icon" />
       ) : (
-        <RiSunLine onClick={() => props.setMenuIcon(false)} className="icon" />
+        <RiSunLine className="icon" />
       )}
     </Wrapper>
   );
