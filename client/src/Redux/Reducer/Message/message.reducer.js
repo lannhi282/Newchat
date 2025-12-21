@@ -71,14 +71,11 @@ const messageReducer = (state = initialState, action) => {
         spamMessages: [...state.spamMessages, action.payload],
       };
 
-    case MARK_AS_NOT_SPAM:
+    case "MARK_AS_NOT_SPAM":
       return {
         ...state,
         allMessages: state.allMessages.map((msg) =>
-          msg._id === action.payload._id ? action.payload : msg
-        ),
-        spamMessages: state.spamMessages.filter(
-          (msg) => msg._id !== action.payload._id
+          msg._id === action.payload.messageId ? { ...msg, isSpam: false } : msg
         ),
       };
 

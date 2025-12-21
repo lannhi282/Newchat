@@ -139,13 +139,16 @@ export const clearAllMessages = () => async (dispatch) => {
 // Mark message as not spam
 export const markMessageAsNotSpam = (messageId) => async (dispatch) => {
   try {
-    const response = await axios({
-      method: "PUT",
-      url: `${SERVER_ACCESS_BASE_URL}/api/message/mark-not-spam/${messageId}`,
+    await axios.put(
+      `${SERVER_ACCESS_BASE_URL}/api/message/mark-not-spam/${messageId}`
+    );
+
+    dispatch({
+      type: MARK_AS_NOT_SPAM,
+      payload: { messageId },
     });
-    return dispatch({ type: MARK_AS_NOT_SPAM, payload: response.data });
   } catch (error) {
     dispatch(showNetworkError(true));
-    return dispatch({ type: "ERROR", payload: error });
+    dispatch({ type: "ERROR", payload: error });
   }
 };

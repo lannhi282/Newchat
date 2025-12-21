@@ -3,7 +3,6 @@ const Message = require("../models/messageModel");
 const User = require("../models/userModel");
 const Chat = require("../models/chatModel");
 const cloudinary = require("../utils/cloudinary");
-// ✅ THAY ĐỔI: Import spamService thay vì spamClassifier
 const { checkSpam } = require("../utils/spamService");
 
 //@description     Get all Messages
@@ -51,7 +50,7 @@ const sendMessage = asyncHandler(async (req, res) => {
     content: content || "",
     chat: chatId,
     isSpam: false,
-    blocked: false,
+    blocked: false, // ✅ Luôn để false - không chặn tin nhắn
   };
 
   // ✅ KIỂM TRA SPAM BẰNG PYTHON API
@@ -63,13 +62,18 @@ const sendMessage = asyncHandler(async (req, res) => {
 
       console.log("📊 Spam check result:", spamResult);
 
-      // ✅ Nếu API Python trả về spam
+      // ✅ Nếu API Python phát hiện spam
       if (spamResult.isSpam) {
         newMessage.isSpam = true;
-        newMessage.blocked = true;
+        newMessage.blocked = false; // ⚠️ KHÔNG CHẶN - chỉ gắn nhãn
         newMessage.spamScore = Math.round(spamResult.spamProbability * 100);
 
-        console.log("🚨 SPAM DETECTED! Score:", newMessage.spamScore);
+        console.log(
+          "⚠️ SPAM DETECTED but message will be sent! Score:",
+          newMessage.spamScore
+        );
+      } else {
+        console.log("✅ Message is clean (not spam)");
       }
     } catch (error) {
       console.error("⚠️ Spam check failed, allowing message:", error.message);
@@ -106,14 +110,12 @@ const sendMessage = asyncHandler(async (req, res) => {
       select: "name pic email",
     });
 
-    // ⚠️ CHỈ CẬP NHẬT LATEST MESSAGE NẾU KHÔNG PHẢI SPAM
-    if (!message.blocked) {
-      await Chat.findByIdAndUpdate(chatId, {
-        latestMessage: message,
-      });
-    } else {
-      console.log("🚫 Spam message blocked from appearing in chat list");
-    }
+    // ✅ LUÔN CẬP NHẬT LATEST MESSAGE (kể cả tin nhắn spam)
+    await Chat.findByIdAndUpdate(chatId, {
+      latestMessage: message,
+    });
+
+    console.log("✅ Message saved and sent successfully");
 
     res.json(message);
   } catch (error) {
@@ -155,7 +157,7 @@ const markAsSpam = asyncHandler(async (req, res) => {
     }
 
     message.isSpam = true;
-    message.blocked = true; // ✅ Thêm blocked = true
+    message.blocked = false; // ✅ Không chặn, chỉ đánh dấu
     if (!message.markedAsSpamBy.includes(req.user._id)) {
       message.markedAsSpamBy.push(req.user._id);
     }
@@ -185,7 +187,7 @@ const markAsNotSpam = asyncHandler(async (req, res) => {
     }
 
     message.isSpam = false;
-    message.blocked = false; // ✅ Bỏ blocked
+    message.blocked = false;
     if (!message.markedAsNotSpamBy.includes(req.user._id)) {
       message.markedAsNotSpamBy.push(req.user._id);
     }

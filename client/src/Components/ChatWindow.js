@@ -1,4 +1,3 @@
-// ✅ THÊM IMPORTS CHO TOAST NOTIFICATION
 import React, { useState, useEffect, Fragment } from "react";
 import styled from "styled-components";
 import { Button } from "../Styles/Button";
@@ -27,8 +26,6 @@ import { MdOutlineArrowBackIos } from "react-icons/md";
 import io from "socket.io-client";
 import { useRef } from "react";
 import Spinner from "../Styles/Spinner";
-
-// ✅ THÊM TOAST NOTIFICATION (nếu chưa có)
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -143,7 +140,7 @@ const ChatWindow = () => {
     }, timerLength);
   };
 
-  // ✅ SENDING MESSAGE VỚI SPAM DETECTION NOTIFICATION
+  // ✅ SENDING MESSAGE - Chỉ thông báo nếu là spam
   const handleClick = async () => {
     if (!newMessage && !selectedFile) {
       if (user && user.length > 0 && user[0]) {
@@ -162,41 +159,12 @@ const ChatWindow = () => {
     }
 
     try {
-      // ✅ GỬI TIN NHẮN
       const result = await dispatch(sendMessge(formData));
-
-      // ✅ KIỂM TRA KẾT QUẢ TRẢ VỀ
       const sentMessage = result.payload;
 
       console.log("📨 Message sent:", sentMessage);
 
-      // ⚠️ THÔNG BÁO NẾU TIN NHẮN BỊ PHÁT HIỆN SPAM
-      if (sentMessage?.blocked && sentMessage?.isSpam) {
-        toast.error(
-          `🚨 Your message was detected as spam and blocked! (Score: ${
-            sentMessage.spamScore || "N/A"
-          })`,
-          {
-            position: "top-center",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-          }
-        );
-      } else if (sentMessage?.isSpam && !sentMessage?.blocked) {
-        toast.warning(
-          "⚠️ Your message was flagged as potential spam but still sent.",
-          {
-            position: "top-right",
-            autoClose: 4000,
-          }
-        );
-      } else {
-        // ✅ TIN NHẮN BÌNH THƯỜNG - Không cần thông báo gì
-        console.log("✅ Message sent successfully (not spam)");
-      }
+      // ✅ TIN NHẮN BÌNH THƯỜNG - Không thông báo gì
 
       // Reset form
       setNewMessage("");
@@ -210,7 +178,6 @@ const ChatWindow = () => {
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // ✅ Kiểm tra kích thước file (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         toast.error("File size must be less than 10MB!");
         return;
@@ -220,14 +187,14 @@ const ChatWindow = () => {
     }
   };
 
-  const handleMarkAsSpam = async (messageId) => {
-    try {
-      await dispatch(markMessageAsSpam(messageId));
-      toast.success("Message marked as spam!");
-    } catch (error) {
-      toast.error("Failed to mark as spam");
-    }
-  };
+  // const handleMarkAsSpam = async (messageId) => {
+  //   try {
+  //     await dispatch(markMessageAsSpam(messageId));
+  //     toast.success("Message marked as spam!");
+  //   } catch (error) {
+  //     toast.error("Failed to mark as spam");
+  //   }
+  // };
 
   const handleMarkAsNotSpam = async (messageId) => {
     try {
@@ -274,13 +241,11 @@ const ChatWindow = () => {
           payload: newMessageRecieved,
         });
 
-        // ✅ THÔNG BÁO TIN NHẮN MỚI (chỉ khi không phải spam)
-        if (!newMessageRecieved.blocked) {
-          toast.info(`New message from ${newMessageRecieved.sender.name}`, {
-            position: "top-right",
-            autoClose: 3000,
-          });
-        }
+        // ✅ THÔNG BÁO TIN NHẮN MỚI (luôn thông báo, kể cả spam)
+        toast.info(`New message from ${newMessageRecieved.sender.name}`, {
+          position: "top-right",
+          autoClose: 3000,
+        });
       } else {
         setTimeout(() => {
           setCount(count + 1);
@@ -333,17 +298,11 @@ const ChatWindow = () => {
     }
   }, [createdMessage, dispatch]);
 
-  // ✅ LỌC TIN NHẮN
-  const displayMessages = message.filter((msg) => {
-    if (msg.sender._id === loggedUser._id) {
-      return true;
-    }
-    return !msg.blocked;
-  });
+  // ✅ HIỂN THỊ TẤT CẢ TIN NHẮN (không filter)
+  const displayMessages = message;
 
   return (
     <Wrapper className="" id="user-chat">
-      {/* ✅ THÊM TOAST CONTAINER */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -492,33 +451,12 @@ const ChatWindow = () => {
                                             {item.content}
                                           </span>
 
-                                          {/* ⚠️ CẢNH BÁO SPAM BLOCKED */}
-                                          {item.blocked && item.isSpam && (
-                                            <div className="spam-blocked-warning mt-2 p-2 bg-red-100 border border-red-400 rounded text-xs">
-                                              <div className="flex items-center text-red-700 font-semibold">
-                                                🚨 Spam Detected - Message
-                                                Blocked
+                                          {/* ⚠️ HIỂN THỊ NHÃN SPAM (chỉ cảnh báo, không chặn) */}
+                                          {item.isSpam && (
+                                            <div className="spam-warning-label mt-2 p-2 bg-orange-50 border border-orange-300 rounded text-xs">
+                                              <div className="flex items-center text-orange-700 font-semibold">
+                                                ⚠️ This message may be spam
                                               </div>
-                                              <div className="text-red-600 mt-1">
-                                                This message was not sent to the
-                                                recipient (Score:{" "}
-                                                {item.spamScore || "N/A"})
-                                              </div>
-                                            </div>
-                                          )}
-
-                                          {/* ⚠️ CẢNH BÁO SPAM NHƯNG KHÔNG BLOCKED */}
-                                          {item.isSpam && !item.blocked && (
-                                            <div className="spam-warning mt-2 text-xs text-orange-500 flex items-center">
-                                              ⚠️ Marked as potential spam
-                                              <button
-                                                onClick={() =>
-                                                  handleMarkAsNotSpam(item._id)
-                                                }
-                                                className="ml-2 text-blue-500 underline hover:text-blue-700"
-                                              >
-                                                Not spam
-                                              </button>
                                             </div>
                                           )}
                                         </>
@@ -574,9 +512,44 @@ const ChatWindow = () => {
                                           </a>
                                         )}
                                       {item.content && (
-                                        <span className="mb-0  text-sm font-medium text-left">
-                                          {item.content}
-                                        </span>
+                                        <>
+                                          <span className="mb-0  text-sm font-medium text-left">
+                                            {item.content}
+                                          </span>
+
+                                          {/* ⚠️ HIỂN THỊ NHÃN SPAM CHO NGƯỜI NHẬN */}
+                                          {item.isSpam && (
+                                            <div className="spam-warning-label mt-2 p-2 bg-yellow-50 border border-yellow-300 rounded text-xs">
+                                              <div className="flex items-center text-yellow-700 font-semibold">
+                                                ⚠️ This message may be spam
+                                              </div>
+                                              {/* <div className="text-yellow-600 text-xs mt-1">
+                                                AI detected spam (Score:{" "}
+                                                {item.spamScore || "N/A"}%)
+                                              </div> */}
+                                              <div className="flex gap-2 mt-2">
+                                                {/* <button
+                                                  onClick={() =>
+                                                    handleMarkAsSpam(item._id)
+                                                  }
+                                                  className="text-red-600 text-xs underline hover:text-red-800"
+                                                >
+                                                  Yes, it's spam
+                                                </button> */}
+                                                <button
+                                                  onClick={() =>
+                                                    handleMarkAsNotSpam(
+                                                      item._id
+                                                    )
+                                                  }
+                                                  className="text-green-600 text-xs underline hover:text-green-800"
+                                                >
+                                                  Not spam
+                                                </button>
+                                              </div>
+                                            </div>
+                                          )}
+                                        </>
                                       )}
                                     </div>
                                   </div>
@@ -732,39 +705,24 @@ const Wrapper = styled.section`
     width: 100%;
     height: 100%;
   }
-  /* ⚠️ STYLE CHO CẢNH BÁO SPAM BLOCKED */
-  .spam-blocked-warning {
-    animation: shake 0.5s;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
-  }
-  // @keyframes shake {
-  //   0%,
-  //   100% {
-  //     transform: translateX(0);
-  //   }
-  //   25% {
-  //     transform: translateX(-5px);
-  //   }
-  //   75% {
-  //     transform: translateX(5px);
-  //   }
-  // }
 
-  // @keyframes pulse {
-  //   0%,
-  //   100% {
-  //     opacity: 1;
-  //   }
-  //   50% {
-  //     opacity: 0.8;
-  //   }
-  // }
-
-  .three-dot-btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  /* ⚠️ STYLE CHO NHÃN SPAM */
+  .spam-warning-label {
+    animation: fadeIn 0.3s ease-in;
+    box-shadow: 0 2px 6px rgba(251, 146, 60, 0.2);
   }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   .three-dot-btn {
     display: flex;
     justify-content: center;
