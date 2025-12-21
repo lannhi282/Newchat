@@ -3,7 +3,8 @@ const Message = require("../models/messageModel");
 const User = require("../models/userModel");
 const Chat = require("../models/chatModel");
 const cloudinary = require("../utils/cloudinary");
-const spamClassifier = require("../utils/spamClassifier");
+// ✅ THAY ĐỔI: Import spamService thay vì spamClassifier
+const { checkSpam } = require("../utils/spamService");
 
 //@description     Get all Messages
 //@route           GET /api/Message/:chatId
@@ -53,15 +54,26 @@ const sendMessage = asyncHandler(async (req, res) => {
     blocked: false,
   };
 
-  // ✅ KIỂM TRA SPAM
+  // ✅ KIỂM TRA SPAM BẰNG PYTHON API
   if (content && content.trim().length > 0) {
-    const spamDetails = spamClassifier.getSpamDetails(content);
+    try {
+      console.log("🔍 Checking spam for:", content.substring(0, 50));
 
-    if (spamDetails.isSpam) {
-      // 🔴 ĐÁNH DẤU LÀ SPAM VÀ BLOCKED
-      newMessage.isSpam = true;
-      newMessage.blocked = true;
-      newMessage.spamScore = spamDetails.spamScore;
+      const spamResult = await checkSpam(content);
+
+      console.log("📊 Spam check result:", spamResult);
+
+      // ✅ Nếu API Python trả về spam
+      if (spamResult.isSpam) {
+        newMessage.isSpam = true;
+        newMessage.blocked = true;
+        newMessage.spamScore = Math.round(spamResult.spamProbability * 100);
+
+        console.log("🚨 SPAM DETECTED! Score:", newMessage.spamScore);
+      }
+    } catch (error) {
+      console.error("⚠️ Spam check failed, allowing message:", error.message);
+      // Nếu API lỗi, cho phép tin nhắn đi qua
     }
   }
 
@@ -99,6 +111,8 @@ const sendMessage = asyncHandler(async (req, res) => {
       await Chat.findByIdAndUpdate(chatId, {
         latestMessage: message,
       });
+    } else {
+      console.log("🚫 Spam message blocked from appearing in chat list");
     }
 
     res.json(message);
@@ -141,6 +155,7 @@ const markAsSpam = asyncHandler(async (req, res) => {
     }
 
     message.isSpam = true;
+    message.blocked = true; // ✅ Thêm blocked = true
     if (!message.markedAsSpamBy.includes(req.user._id)) {
       message.markedAsSpamBy.push(req.user._id);
     }
@@ -170,6 +185,7 @@ const markAsNotSpam = asyncHandler(async (req, res) => {
     }
 
     message.isSpam = false;
+    message.blocked = false; // ✅ Bỏ blocked
     if (!message.markedAsNotSpamBy.includes(req.user._id)) {
       message.markedAsNotSpamBy.push(req.user._id);
     }

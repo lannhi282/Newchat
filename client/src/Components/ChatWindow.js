@@ -1,3 +1,4 @@
+// ✅ THÊM IMPORTS CHO TOAST NOTIFICATION
 import React, { useState, useEffect, Fragment } from "react";
 import styled from "styled-components";
 import { Button } from "../Styles/Button";
@@ -20,15 +21,18 @@ import {
   markMessageAsSpam,
   markMessageAsNotSpam,
 } from "../Redux/Reducer/Message/message.action";
-
 import { Dialog, Menu, Transition } from "@headlessui/react";
 import UserProfile from "./SlideMenu/UserProfile";
 import { MdOutlineArrowBackIos } from "react-icons/md";
 import io from "socket.io-client";
 import { useRef } from "react";
 import Spinner from "../Styles/Spinner";
-const SERVER_ACCESS_BASE_URL = process.env.REACT_APP_SERVER_ACCESS_BASE_URL;
 
+// ✅ THÊM TOAST NOTIFICATION (nếu chưa có)
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+const SERVER_ACCESS_BASE_URL = process.env.REACT_APP_SERVER_ACCESS_BASE_URL;
 const ENDPOINT = SERVER_ACCESS_BASE_URL;
 var socket, selectedChatCompare;
 
@@ -49,34 +53,10 @@ const ChatWindow = () => {
   const [user, setUser] = useState();
   const [selectedFile, setSelectedFile] = useState(null);
 
-  // ❌ XÓA STATE NÀY - KHÔNG CẦN NỮA
-  // const [blockedMessages, setBlockedMessages] = useState([]);
-
   const senderUser = useSelector(
     (globalState) => globalState.chat.selectedChat
   );
   const hasChat = Boolean(senderUser?._id);
-  useEffect(() => {
-    if (senderUser) {
-      console.log("🔍 Selected Chat FULL:", senderUser);
-      console.log("🔍 Users array:", senderUser.users);
-
-      // ✅ Log từng user chi tiết
-      if (senderUser.users && Array.isArray(senderUser.users)) {
-        senderUser.users.forEach((user, index) => {
-          console.log(`👤 User ${index + 1}:`, {
-            type: typeof user,
-            isString: typeof user === "string",
-            isObject: typeof user === "object",
-            value: user,
-            hasName: user?.name,
-            hasPic: user?.pic,
-            hasId: user?._id,
-          });
-        });
-      }
-    }
-  }, [senderUser]);
 
   const loggedUser = useSelector((globalState) => globalState.user.userDetails);
   const theme = useSelector((state) => state.themeReducer.darkThemeEnabled);
@@ -86,7 +66,6 @@ const ChatWindow = () => {
   const createdMessage = useSelector(
     (globalState) => globalState.message.createdMessage
   );
-
   const loading = useSelector((globalState) => globalState.message.isLoading);
 
   function closeModal() {
@@ -133,7 +112,8 @@ const ChatWindow = () => {
 
   useEffect(() => {
     getUserId();
-  }, [sender, loggedUser]); // ✅ Thêm dependencies
+  }, [sender, loggedUser]);
+
   const handleChange = (e) => {
     setNewMessage(e.target.value);
 
@@ -163,13 +143,13 @@ const ChatWindow = () => {
     }, timerLength);
   };
 
-  // ✅ SENDING MESSAGE - ĐƠN GIẢN HƠN
+  // ✅ SENDING MESSAGE VỚI SPAM DETECTION NOTIFICATION
   const handleClick = async () => {
     if (!newMessage && !selectedFile) {
       if (user && user.length > 0 && user[0]) {
         socket.emit("stop typing", user[0]._id);
       }
-      alert("Empty Message can't be send");
+      toast.error("Empty message can't be sent!");
       return;
     }
 
@@ -181,25 +161,81 @@ const ChatWindow = () => {
       formData.append("file", selectedFile);
     }
 
-    // ✅ GỬI TIN NHẮN - Backend sẽ tự động xử lý spam
-    setNewMessage("");
-    setSelectedFile(null);
-    await dispatch(sendMessge(formData));
+    try {
+      // ✅ GỬI TIN NHẮN
+      const result = await dispatch(sendMessge(formData));
+
+      // ✅ KIỂM TRA KẾT QUẢ TRẢ VỀ
+      const sentMessage = result.payload;
+
+      console.log("📨 Message sent:", sentMessage);
+
+      // ⚠️ THÔNG BÁO NẾU TIN NHẮN BỊ PHÁT HIỆN SPAM
+      if (sentMessage?.blocked && sentMessage?.isSpam) {
+        toast.error(
+          `🚨 Your message was detected as spam and blocked! (Score: ${
+            sentMessage.spamScore || "N/A"
+          })`,
+          {
+            position: "top-center",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          }
+        );
+      } else if (sentMessage?.isSpam && !sentMessage?.blocked) {
+        toast.warning(
+          "⚠️ Your message was flagged as potential spam but still sent.",
+          {
+            position: "top-right",
+            autoClose: 4000,
+          }
+        );
+      } else {
+        // ✅ TIN NHẮN BÌNH THƯỜNG - Không cần thông báo gì
+        console.log("✅ Message sent successfully (not spam)");
+      }
+
+      // Reset form
+      setNewMessage("");
+      setSelectedFile(null);
+    } catch (error) {
+      console.error("❌ Send message error:", error);
+      toast.error("Failed to send message. Please try again.");
+    }
   };
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // ✅ Kiểm tra kích thước file (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File size must be less than 10MB!");
+        return;
+      }
       setSelectedFile(file);
+      toast.info(`File selected: ${file.name}`);
     }
   };
 
   const handleMarkAsSpam = async (messageId) => {
-    await dispatch(markMessageAsSpam(messageId));
+    try {
+      await dispatch(markMessageAsSpam(messageId));
+      toast.success("Message marked as spam!");
+    } catch (error) {
+      toast.error("Failed to mark as spam");
+    }
   };
 
   const handleMarkAsNotSpam = async (messageId) => {
-    await dispatch(markMessageAsNotSpam(messageId));
+    try {
+      await dispatch(markMessageAsNotSpam(messageId));
+      toast.success("Message marked as not spam!");
+    } catch (error) {
+      toast.error("Failed to mark as not spam");
+    }
   };
 
   useEffect(() => {
@@ -233,19 +269,24 @@ const ChatWindow = () => {
       ) {
         console.log("Message from other chat:", newMessageRecieved);
 
-        // ✅ QUAN TRỌNG: Cập nhật latestMessage trong chatList ngay cả khi không mở chat đó
         dispatch({
           type: "MESSAGE_RECEIVED",
           payload: newMessageRecieved,
         });
+
+        // ✅ THÔNG BÁO TIN NHẮN MỚI (chỉ khi không phải spam)
+        if (!newMessageRecieved.blocked) {
+          toast.info(`New message from ${newMessageRecieved.sender.name}`, {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        }
       } else {
-        // Đang mở chat này
         setTimeout(() => {
           setCount(count + 1);
         }, 1000);
         dispatch(updateGetAllChats(newMessageRecieved));
 
-        // ✅ QUAN TRỌNG: Cập nhật latestMessage trong chatList
         dispatch({
           type: "UPDATE_LATEST_MESSAGE",
           payload: newMessageRecieved,
@@ -285,7 +326,6 @@ const ChatWindow = () => {
       socket.emit("new message", createdMessage);
       dispatch(updateGetAllChats(createdMessage));
 
-      // ✅ QUAN TRỌNG: Cập nhật latestMessage trong chatList khi gửi tin nhắn
       dispatch({
         type: "UPDATE_LATEST_MESSAGE",
         payload: createdMessage,
@@ -293,18 +333,30 @@ const ChatWindow = () => {
     }
   }, [createdMessage, dispatch]);
 
-  // ✅ LỌC TIN NHẮN: Người gửi thấy TẤT CẢ, người nhận CHỈ thấy tin không bị blocked
+  // ✅ LỌC TIN NHẮN
   const displayMessages = message.filter((msg) => {
-    // Nếu là tin nhắn của mình -> hiển thị tất cả (kể cả blocked)
     if (msg.sender._id === loggedUser._id) {
       return true;
     }
-    // Nếu là tin nhắn của người khác -> chỉ hiển thị tin không bị blocked
     return !msg.blocked;
   });
 
   return (
     <Wrapper className="" id="user-chat">
+      {/* ✅ THÊM TOAST CONTAINER */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme={theme ? "dark" : "light"}
+      />
+
       <div className="chat-window-section">
         {!hasChat ? (
           <>
@@ -401,154 +453,146 @@ const ChatWindow = () => {
                       <>
                         {displayMessages.map((item, index) =>
                           isMyMessage(loggedUser, item) && item.sender.pic ? (
-                            <>
-                              <li key={index} className="chat-list right">
-                                <div className="conversation-list">
-                                  <div className="chat-avatar mr-4">
-                                    <img
-                                      src={item.sender.pic}
-                                      alt=""
-                                      className="rounded-full"
-                                    />
-                                  </div>
-                                  <div className="user-chat-content">
-                                    <div className="flex mb-3 justify-end">
-                                      <div className="chat-wrap-content">
-                                        {item.fileUrl &&
-                                          item.fileType?.startsWith(
-                                            "image/"
-                                          ) && (
-                                            <img
-                                              src={item.fileUrl}
-                                              alt={item.fileName}
-                                              className="max-w-xs rounded mb-2"
-                                            />
-                                          )}
-                                        {item.fileUrl &&
-                                          !item.fileType?.startsWith(
-                                            "image/"
-                                          ) && (
-                                            <a
-                                              href={item.fileUrl}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="text-blue-500 underline block mb-2"
-                                            >
-                                              📄 {item.fileName}
-                                            </a>
-                                          )}
-                                        {item.content && (
-                                          <>
-                                            <span className="mb-0 chat-content text-sm font-medium text-left">
-                                              {item.content}
-                                            </span>
-
-                                            {/* ⚠️ HIỂN THỊ CẢNH BÁO SPAM */}
-                                            {item.blocked && item.isSpam && (
-                                              <div className="spam-blocked-warning mt-2 p-2 bg-red-100 border border-red-400 rounded text-xs">
-                                                <div className="flex items-center text-red-700 font-semibold">
-                                                  ⚠️ Spam detected - Không gửi
-                                                  được
-                                                </div>
-                                                {/* <div className="text-red-600 mt-1">
-                                                  Tin nhắn này chứa nội dung
-                                                  spam (Score: {item.spamScore})
-                                                </div> */}
-                                              </div>
-                                            )}
-
-                                            {item.isSpam && !item.blocked && (
-                                              <div className="spam-warning mt-2 text-xs text-orange-500 flex items-center">
-                                                ⚠️ Spam detected
-                                                <button
-                                                  onClick={() =>
-                                                    handleMarkAsNotSpam(
-                                                      item._id
-                                                    )
-                                                  }
-                                                  className="ml-2 text-blue-500 underline"
-                                                >
-                                                  Not spam
-                                                </button>
-                                              </div>
-                                            )}
-                                          </>
-                                        )}
-                                      </div>
-                                    </div>
-                                    <div className="conversation-name ">
-                                      <small className=" mb-0">
-                                        {moment(item.createdAt)
-                                          .format("DD/MMM/YYYY , h:mm a")
-                                          .toUpperCase()}
-                                      </small>
-
-                                      <span className="ml-2 text-xs user-name">
-                                        you
-                                      </span>
-                                    </div>
-                                  </div>
+                            <li key={index} className="chat-list right">
+                              <div className="conversation-list">
+                                <div className="chat-avatar mr-4">
+                                  <img
+                                    src={item.sender.pic}
+                                    alt=""
+                                    className="rounded-full"
+                                  />
                                 </div>
-                              </li>
-                            </>
-                          ) : (
-                            <>
-                              <li key={index} className="chat-list">
-                                <div className="conversation-list">
-                                  <div className="chat-avatar mr-4">
-                                    <img
-                                      src={item.sender.pic}
-                                      alt=""
-                                      className="rounded-full"
-                                    />
-                                  </div>
-                                  <div className="user-chat-content">
-                                    <div className="flex mb-3">
-                                      <div className="chat-wrap-content">
-                                        {item.fileUrl &&
-                                          item.fileType?.startsWith(
-                                            "image/"
-                                          ) && (
-                                            <img
-                                              src={item.fileUrl}
-                                              alt={item.fileName}
-                                              className="max-w-xs rounded mb-2"
-                                            />
-                                          )}
-                                        {item.fileUrl &&
-                                          !item.fileType?.startsWith(
-                                            "image/"
-                                          ) && (
-                                            <a
-                                              href={item.fileUrl}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="text-blue-500 underline block mb-2"
-                                            >
-                                              📄 {item.fileName}
-                                            </a>
-                                          )}
-                                        {item.content && (
-                                          <span className="mb-0  text-sm font-medium text-left">
+                                <div className="user-chat-content">
+                                  <div className="flex mb-3 justify-end">
+                                    <div className="chat-wrap-content">
+                                      {item.fileUrl &&
+                                        item.fileType?.startsWith("image/") && (
+                                          <img
+                                            src={item.fileUrl}
+                                            alt={item.fileName}
+                                            className="max-w-xs rounded mb-2"
+                                          />
+                                        )}
+                                      {item.fileUrl &&
+                                        !item.fileType?.startsWith(
+                                          "image/"
+                                        ) && (
+                                          <a
+                                            href={item.fileUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-500 underline block mb-2"
+                                          >
+                                            📄 {item.fileName}
+                                          </a>
+                                        )}
+                                      {item.content && (
+                                        <>
+                                          <span className="mb-0 chat-content text-sm font-medium text-left">
                                             {item.content}
                                           </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                    <div className="conversation-name">
-                                      <span className="ml-2 text-xs user-name">
-                                        {item.sender.name}
-                                      </span>
-                                      <small className="ml-2 mb-0">
-                                        {moment(item.createdAt)
-                                          .format("DD/MMM/YYYY , h:mm a")
-                                          .toUpperCase()}
-                                      </small>
+
+                                          {/* ⚠️ CẢNH BÁO SPAM BLOCKED */}
+                                          {item.blocked && item.isSpam && (
+                                            <div className="spam-blocked-warning mt-2 p-2 bg-red-100 border border-red-400 rounded text-xs">
+                                              <div className="flex items-center text-red-700 font-semibold">
+                                                🚨 Spam Detected - Message
+                                                Blocked
+                                              </div>
+                                              <div className="text-red-600 mt-1">
+                                                This message was not sent to the
+                                                recipient (Score:{" "}
+                                                {item.spamScore || "N/A"})
+                                              </div>
+                                            </div>
+                                          )}
+
+                                          {/* ⚠️ CẢNH BÁO SPAM NHƯNG KHÔNG BLOCKED */}
+                                          {item.isSpam && !item.blocked && (
+                                            <div className="spam-warning mt-2 text-xs text-orange-500 flex items-center">
+                                              ⚠️ Marked as potential spam
+                                              <button
+                                                onClick={() =>
+                                                  handleMarkAsNotSpam(item._id)
+                                                }
+                                                className="ml-2 text-blue-500 underline hover:text-blue-700"
+                                              >
+                                                Not spam
+                                              </button>
+                                            </div>
+                                          )}
+                                        </>
+                                      )}
                                     </div>
                                   </div>
+                                  <div className="conversation-name ">
+                                    <small className=" mb-0">
+                                      {moment(item.createdAt)
+                                        .format("DD/MMM/YYYY , h:mm a")
+                                        .toUpperCase()}
+                                    </small>
+
+                                    <span className="ml-2 text-xs user-name">
+                                      you
+                                    </span>
+                                  </div>
                                 </div>
-                              </li>
-                            </>
+                              </div>
+                            </li>
+                          ) : (
+                            <li key={index} className="chat-list">
+                              <div className="conversation-list">
+                                <div className="chat-avatar mr-4">
+                                  <img
+                                    src={item.sender.pic}
+                                    alt=""
+                                    className="rounded-full"
+                                  />
+                                </div>
+                                <div className="user-chat-content">
+                                  <div className="flex mb-3">
+                                    <div className="chat-wrap-content">
+                                      {item.fileUrl &&
+                                        item.fileType?.startsWith("image/") && (
+                                          <img
+                                            src={item.fileUrl}
+                                            alt={item.fileName}
+                                            className="max-w-xs rounded mb-2"
+                                          />
+                                        )}
+                                      {item.fileUrl &&
+                                        !item.fileType?.startsWith(
+                                          "image/"
+                                        ) && (
+                                          <a
+                                            href={item.fileUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-500 underline block mb-2"
+                                          >
+                                            📄 {item.fileName}
+                                          </a>
+                                        )}
+                                      {item.content && (
+                                        <span className="mb-0  text-sm font-medium text-left">
+                                          {item.content}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="conversation-name">
+                                    <span className="ml-2 text-xs user-name">
+                                      {item.sender.name}
+                                    </span>
+                                    <small className="ml-2 mb-0">
+                                      {moment(item.createdAt)
+                                        .format("DD/MMM/YYYY , h:mm a")
+                                        .toUpperCase()}
+                                    </small>
+                                  </div>
+                                </div>
+                              </div>
+                            </li>
                           )
                         )}
                         <div ref={messageEndRef}></div>
@@ -693,6 +737,29 @@ const Wrapper = styled.section`
     animation: shake 0.5s;
     box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
   }
+  // @keyframes shake {
+  //   0%,
+  //   100% {
+  //     transform: translateX(0);
+  //   }
+  //   25% {
+  //     transform: translateX(-5px);
+  //   }
+  //   75% {
+  //     transform: translateX(5px);
+  //   }
+  // }
+
+  // @keyframes pulse {
+  //   0%,
+  //   100% {
+  //     opacity: 1;
+  //   }
+  //   50% {
+  //     opacity: 0.8;
+  //   }
+  // }
+
   .three-dot-btn {
     display: flex;
     justify-content: center;

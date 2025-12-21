@@ -5,8 +5,11 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "start-all": "node start-servers.js"
+
   },
+  
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -35,4 +38,5 @@
     "@babel/preset-env": "^7.20.2",
     "nodemon": "^3.1.11"
   }
+  
 }
