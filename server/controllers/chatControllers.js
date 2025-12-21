@@ -1,10 +1,11 @@
 const asyncHandler = require("express-async-handler");
 const { remove } = require("../models/chatModel");
 const Chat = require("../models/chatModel");
+const { checkSpam } = require("../utils/spamService");
 const User = require("../models/userModel");
 const Message = require("../models/messageModel"); // ✅ Thêm import Message model
 
-//@description     Create or fetch One to One Chat
+//@desFcription     Create or fetch One to One Chat
 //@route           POST /api/chat/
 //@access          Protected
 const accessChat = asyncHandler(async (req, res) => {
