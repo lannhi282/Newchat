@@ -24,8 +24,6 @@ const SideMenu = () => {
     dispatch(toggleTab(id));
   };
 
-  // Removed the "Favourite" entry (AiOutlineStar)
-  // Keep ids for other items the same so they don't shift
   const sideIconsList = [
     {
       id: 1,
@@ -33,7 +31,7 @@ const SideMenu = () => {
       title: "Profile",
     },
     {
-      id: 3, // kept id 3 (was Chats before)
+      id: 3,
       icon: BsChatSquareDots,
       title: "Chats",
     },
@@ -103,10 +101,8 @@ const SideMenu = () => {
                   onClick={() => activeTab(items.id)}
                 >
                   <div
-                    // keep the mobile close behavior
                     onClick={() => setMenuIcon(false)}
                     className={
-                      // preserve old behavior: if tabIndex === 0, highlight Chats (id 3)
                       items.id === 3 && tabIndex === 0
                         ? "nav-link active"
                         : tabIndex === items.id

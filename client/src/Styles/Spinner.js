@@ -19,13 +19,16 @@ const Spinner = () => {
 export default Spinner;
 
 const Wrapper = styled.div`
-   width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    div {
-      width: 8rem;
-      height: 8rem;
-      color: ${({ theme }) => theme.colors.primaryRgb};
-    }
-`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  div {
+    width: 8rem;
+    height: 8rem;
+    color: ${({ theme }) => theme.colors.primaryRgb};
+  }
+`;
+/*
+! tailwindcss v3.2.4 | MIT License | https://tailwindcss.com
+*/

@@ -11,7 +11,7 @@ import {
   deleteChatAction,
   clearSelectChatAction,
   removeUserFromGroup,
-  fetchChats, // ✅ Đảm bảo import fetchChats
+  fetchChats,
 } from "../Redux/Reducer/Chat/chat.action";
 import { clearAllMessages } from "../Redux/Reducer/Message/message.action";
 
@@ -78,7 +78,7 @@ const Dropdown = (props) => {
     const loadingToast = toast.loading("Leaving group...");
 
     try {
-      // ✅ Gọi removeUserFromGroup để rời nhóm
+      // Gọi removeUserFromGroup để rời nhóm
       await dispatch(
         removeUserFromGroup({
           chatId: senderUser._id,
@@ -86,13 +86,8 @@ const Dropdown = (props) => {
         })
       );
 
-      // ✅ Clear selected chat ngay lập tức
       dispatch(clearSelectChatAction());
-
-      // ✅ QUAN TRỌNG: Fetch lại danh sách chats để cập nhật UI
       await dispatch(fetchChats());
-
-      // ✅ Update loading toast thành success (chỉ 1 toast duy nhất)
       toast.update(loadingToast, {
         render: "Left group successfully",
         type: "success",
@@ -101,7 +96,7 @@ const Dropdown = (props) => {
       });
     } catch (error) {
       console.error("Leave group error:", error);
-      // ✅ Update loading toast thành error
+
       toast.update(loadingToast, {
         render: "Failed to leave group",
         type: "error",

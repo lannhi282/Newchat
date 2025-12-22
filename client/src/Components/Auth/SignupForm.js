@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button } from "../../Styles/Button";
-import Social from "../../Styles/Social";
 import { AiFillEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -100,7 +99,7 @@ const SignupForm = () => {
         <div className="mb-8"></div>
         <div className="mb-8">
           <h3 className="mb-1 text-center">Sign up</h3>
-          <p className="text-center">Get your free E-Talk account now..</p>
+          {/* <p className="text-center">Get your free E-Talk account now..</p> */}
         </div>
         <div className=" px-8 pb-8 card">
           {/* <form action="#"> */}
@@ -128,7 +127,7 @@ const SignupForm = () => {
                   type="email"
                   name="email"
                   autoComplete="off"
-                  placeholder="Email"
+                  placeholder="Enter your mail"
                   required
                   value={userData.email}
                   onChange={handleChange}
@@ -143,7 +142,7 @@ const SignupForm = () => {
                   type="number"
                   name="contact"
                   autoComplete="off"
-                  placeholder="+91-phone no.."
+                  placeholder="Enter your mobile"
                   required
                   value={userData.contact}
                   onChange={handleChange}
@@ -220,9 +219,7 @@ const SignupForm = () => {
             >
               {loading ? <>Registering... </> : <>Register</>}
             </Button>
-            {/* <Social /> */}
           </div>
-          {/* </form> */}
         </div>
       </div>
       <ToastContainer />

@@ -2,7 +2,7 @@ import { UPLOAD_IMAGE } from "./profileImage.type";
 const initialState = {
   profilePic: "",
 };
-
+// sss
 const profileImageReducer = (state = initialState, action) => {
   switch (action.type) {
     case UPLOAD_IMAGE:

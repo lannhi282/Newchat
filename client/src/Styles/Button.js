@@ -1,5 +1,7 @@
 import styled from "styled-components";
-
+/*
+! tailwindcss v3.2.4 | MIT License | https://tailwindcss.com
+*/
 export const Button = styled.button`
   font-weight: 400;
   line-height: 1.5;
@@ -13,5 +15,5 @@ export const Button = styled.button`
   font-size: 0.9375rem;
   border-radius: 0.25rem;
   transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
-  border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 `;

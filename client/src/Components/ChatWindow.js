@@ -187,15 +187,6 @@ const ChatWindow = () => {
     }
   };
 
-  // const handleMarkAsSpam = async (messageId) => {
-  //   try {
-  //     await dispatch(markMessageAsSpam(messageId));
-  //     toast.success("Message marked as spam!");
-  //   } catch (error) {
-  //     toast.error("Failed to mark as spam");
-  //   }
-  // };
-
   const handleMarkAsNotSpam = async (messageId) => {
     try {
       await dispatch(markMessageAsNotSpam(messageId));
@@ -523,19 +514,7 @@ const ChatWindow = () => {
                                               <div className="flex items-center text-yellow-700 font-semibold">
                                                 ⚠️ This message may be spam
                                               </div>
-                                              {/* <div className="text-yellow-600 text-xs mt-1">
-                                                AI detected spam (Score:{" "}
-                                                {item.spamScore || "N/A"}%)
-                                              </div> */}
                                               <div className="flex gap-2 mt-2">
-                                                {/* <button
-                                                  onClick={() =>
-                                                    handleMarkAsSpam(item._id)
-                                                  }
-                                                  className="text-red-600 text-xs underline hover:text-red-800"
-                                                >
-                                                  Yes, it's spam
-                                                </button> */}
                                                 <button
                                                   onClick={() =>
                                                     handleMarkAsNotSpam(

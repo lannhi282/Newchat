@@ -1,6 +1,5 @@
 const axios = require("axios");
 
-// ✅ FORCE IPv4 - KHÔNG DÙNG localhost vì nó có thể resolve thành ::1 (IPv6)
 const SPAM_API_URL = process.env.SPAM_API_URL || "http://127.0.0.1:5001";
 
 /**
@@ -29,7 +28,6 @@ async function checkSpam(text) {
         headers: {
           "Content-Type": "application/json",
         },
-        // ✅ FORCE IPv4 - Ngăn Node.js dùng IPv6
         family: 4,
       }
     );
@@ -71,7 +69,7 @@ async function checkAPIHealth() {
   try {
     const res = await axios.get(`${SPAM_API_URL}/`, {
       timeout: 2000,
-      family: 4, // ✅ Force IPv4
+      family: 4,
     });
     return res.status === 200;
   } catch (err) {

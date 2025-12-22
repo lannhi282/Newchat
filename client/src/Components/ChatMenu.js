@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Profile from "./Profile";
-// import Favourite from "./Favourite";
 import Contacts from "./Contacts";
 import Setting from "./Setting";
 import Default from "./Default";
@@ -74,7 +73,6 @@ const ChatMenu = () => {
       setSearch("");
       dispatch(fetchUserClear());
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabIndex, search]);
 
   return (

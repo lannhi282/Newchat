@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-// import Social from "../../Styles/Social";
 import { Button } from "../../Styles/Button";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -24,8 +23,6 @@ const LoginForm = () => {
 
   const result = useSelector((globalState) => globalState.auth.message);
   const status = useSelector((globalState) => globalState.auth.success);
-  // const user = useSelector((globalState) => globalState.user.userDetails);
-  // const serverResponse = useSelector((globalState) => globalState.auth);
   const navigateToHome = async () => {
     await navigate("/");
     await dispatch(clearAuthStore());
@@ -33,10 +30,6 @@ const LoginForm = () => {
 
   useEffect(() => {
     if (result) {
-      // if (!user) {
-      //   dispatch(clearAuthStore());
-      //   return;
-      // }
       setMessage(result);
       if (!status) {
         toast.error(result, {
@@ -61,10 +54,8 @@ const LoginForm = () => {
           progress: undefined,
           theme: "light",
         });
-        // console.log("redirecting");
-        // dispatch(clearAuthStore());
+
         navigateToHome();
-        // console.log("redirected");
       }
     }
   }, [result]);
@@ -78,13 +69,6 @@ const LoginForm = () => {
       setLoading1(true);
       await dispatch(signIn(userData));
       setLoading1(false);
-      // toast.success("login Sucessfully");
-      // navigate("/verification");
-      // navigate("/");
-      // alert("navigated");
-
-      // dispatch(getMySelf());
-      // setUserData({ email: "", password: "" });
     } else {
       toast.error("Please Fill the Data", {
         autoClose: 1000,
@@ -143,17 +127,7 @@ const LoginForm = () => {
                   </span>
                 </div>
               </div>
-              {/* <div className=" mb-6">
-                <label className="checkbox-label mb-0">
-                  <input
-                    className="checkbox"
-                    type="checkbox"
-                    name=""
-                    value=""
-                  />
-                  <span className="ml-2">Remember Me</span>
-                </label>
-              </div> */}
+
               <Button
                 className="button bg-green-600  hover:bg-green-500 active:bg-green-700 text-white radius-round h-11 px-8 py-2 w-full"
                 onClick={handleLogin}
@@ -161,15 +135,12 @@ const LoginForm = () => {
                 {loading1 ? (
                   <>
                     <span>Signing...</span>
-                    {/* <Loading1 /> */}
                   </>
                 ) : (
                   <>Log In</>
                 )}
               </Button>
-              {/* <Social /> */}
             </div>
-            {/* </form> */}
           </div>
         </div>
       </div>

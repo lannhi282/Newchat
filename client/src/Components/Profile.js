@@ -1,7 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-// import { MdOutlineEmail } from "react-icons/md";
-// import { FcAbout, FcContacts } from "react-icons/fc";
+
 import {
   AiFillContacts,
   AiFillInfoCircle,

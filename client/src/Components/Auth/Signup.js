@@ -28,7 +28,6 @@ const Signup = () => {
                   Sign in
                 </NavLink>
               </p>
-              <p>© {new Date().getFullYear()} E-Talk created with ❤️ </p>
             </div>
           </div>
         </div>

@@ -1,6 +1,4 @@
 import axios from "axios";
-// import dotenv from "dotenv";
-// action type
 
 import {
   SIGN_IN,
@@ -124,12 +122,6 @@ export const forgotPassword = (data) => async (dispatch) => {
 // Reset password
 export const resetPassword = (userData) => async (dispatch) => {
   try {
-    // const { token, password } = userData;
-    // console.log(data.email);
-    // const data = {
-    //   token: token,
-    //   password: password,
-    // };
     const resetPasswordStatus = await axios({
       method: "POST",
       url: `${SERVER_ACCESS_BASE_URL}/api/user/resetpassword`,

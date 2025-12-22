@@ -101,7 +101,7 @@ const ForgotPassword = () => {
 
           <div className="w-full p-6 bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md dark:bg-gray-800 dark:border-gray-700 sm:p-8">
             <h2 className="mb-1 text-xl font-bold text-center leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
-              Forogt Password
+              Forgot Password
             </h2>
             {/* <form className="mt-4 space-y-4 lg:mt-5 md:space-y-5" action="#"> */}
             {message ? (
@@ -138,7 +138,7 @@ const ForgotPassword = () => {
                       value={userData.email}
                       id="email"
                       className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      placeholder="e.g. janedoe@gmail.com"
+                      placeholder="Enter your email"
                       required=""
                       onChange={handleChange}
                     />

@@ -45,15 +45,8 @@ const Default = () => {
   }, [chat]);
 
   useEffect(() => {
-    // dispatch(clearSelectChatAction());
-    // if (selectedChat ? dispatch(getAllChats(selectedChat._id)) : "")
-
     dispatch(selectChatAction(selectedChat));
-    // console.log(selectedChat);
-
     dispatch(getAllChats(selectedChat));
-
-    // alert(selectedChat._id)
   }, [selectedChat]);
 
   return (
