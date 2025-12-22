@@ -11,7 +11,7 @@ import {
   deleteChatAction,
   clearSelectChatAction,
   removeUserFromGroup,
-  fetchChats,
+  fetchChats, // ✅ Đảm bảo import fetchChats
 } from "../Redux/Reducer/Chat/chat.action";
 import { clearAllMessages } from "../Redux/Reducer/Message/message.action";
 
@@ -27,7 +27,7 @@ const Dropdown = (props) => {
     if (!senderUser?._id) {
       toast.error("No chat selected", {
         position: "top-right",
-        autoClose: 2000,
+        autoClose: 1000,
       });
       return;
     }
@@ -39,28 +39,19 @@ const Dropdown = (props) => {
     if (!window.confirm(confirmMessage)) return;
 
     try {
-      // ✅ Xóa messages trên server
       await dispatch(deleteChatAction(senderUser._id));
-
-      // ✅ Clear messages trong Redux state
       dispatch(clearAllMessages());
-
-      // ✅ Đóng chat window để tránh lỗi
       dispatch(clearSelectChatAction());
-
-      // ✅ Fetch lại danh sách chats để cập nhật latestMessage
       await dispatch(fetchChats());
 
       toast.success("Messages deleted successfully", {
         position: "top-right",
-        autoClose: 2000,
+        autoClose: 1000,
       });
-
-      // ✅ KHÔNG cần reload - UI tự động update
     } catch (error) {
       toast.error("Failed to delete messages", {
         position: "top-right",
-        autoClose: 2000,
+        autoClose: 1000,
       });
     }
   };
@@ -69,7 +60,7 @@ const Dropdown = (props) => {
     if (!senderUser?._id || !senderUser.isGroupChat) {
       toast.error("Please select a group chat", {
         position: "top-right",
-        autoClose: 2000,
+        autoClose: 1000,
       });
       return;
     }
@@ -77,7 +68,7 @@ const Dropdown = (props) => {
     if (!loggedUser?._id) {
       toast.error("User not logged in", {
         position: "top-right",
-        autoClose: 2000,
+        autoClose: 1000,
       });
       return;
     }
@@ -87,6 +78,7 @@ const Dropdown = (props) => {
     const loadingToast = toast.loading("Leaving group...");
 
     try {
+      // ✅ Gọi removeUserFromGroup để rời nhóm
       await dispatch(
         removeUserFromGroup({
           chatId: senderUser._id,
@@ -94,20 +86,27 @@ const Dropdown = (props) => {
         })
       );
 
-      toast.dismiss(loadingToast);
-      toast.success("Left group successfully", {
-        position: "top-right",
-        autoClose: 2000,
-      });
-
-      // ✅ Clear selected chat
+      // ✅ Clear selected chat ngay lập tức
       dispatch(clearSelectChatAction());
+
+      // ✅ QUAN TRỌNG: Fetch lại danh sách chats để cập nhật UI
+      await dispatch(fetchChats());
+
+      // ✅ Update loading toast thành success (chỉ 1 toast duy nhất)
+      toast.update(loadingToast, {
+        render: "Left group successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 1000,
+      });
     } catch (error) {
       console.error("Leave group error:", error);
-      toast.dismiss(loadingToast);
-      toast.error("Failed to leave group", {
-        position: "top-right",
-        autoClose: 2000,
+      // ✅ Update loading toast thành error
+      toast.update(loadingToast, {
+        render: "Failed to leave group",
+        type: "error",
+        isLoading: false,
+        autoClose: 1000,
       });
     }
   };

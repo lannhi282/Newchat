@@ -440,7 +440,7 @@ const ChatWindow = () => {
                                             href={item.fileUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-blue-500 underline block mb-2"
+                                            className="text-blue-50 underline block mb-2"
                                           >
                                             📄 {item.fileName}
                                           </a>

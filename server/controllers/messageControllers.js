@@ -4,6 +4,7 @@ const User = require("../models/userModel");
 const Chat = require("../models/chatModel");
 const cloudinary = require("../utils/cloudinary");
 const { checkSpam } = require("../utils/spamService");
+const fs = require("fs");
 
 //@description     Get all Messages
 //@route           GET /api/Message/:chatId
@@ -42,6 +43,7 @@ const sendMessage = asyncHandler(async (req, res) => {
   const { content, chatId } = req.body;
 
   if ((!content && !req.file) || !chatId) {
+    console.log("❌ Missing content or chatId");
     return res.sendStatus(400);
   }
 
@@ -50,24 +52,20 @@ const sendMessage = asyncHandler(async (req, res) => {
     content: content || "",
     chat: chatId,
     isSpam: false,
-    blocked: false, // ✅ Luôn để false - không chặn tin nhắn
+    blocked: false,
   };
 
-  // ✅ KIỂM TRA SPAM BẰNG PYTHON API
+  // KIỂM TRA SPAM BẰNG PYTHON API
   if (content && content.trim().length > 0) {
     try {
       console.log("🔍 Checking spam for:", content.substring(0, 50));
-
       const spamResult = await checkSpam(content);
-
       console.log("📊 Spam check result:", spamResult);
 
-      // ✅ Nếu API Python phát hiện spam
       if (spamResult.isSpam) {
         newMessage.isSpam = true;
-        newMessage.blocked = false; // ⚠️ KHÔNG CHẶN - chỉ gắn nhãn
+        newMessage.blocked = false;
         newMessage.spamScore = Math.round(spamResult.spamProbability * 100);
-
         console.log(
           "⚠️ SPAM DETECTED but message will be sent! Score:",
           newMessage.spamScore
@@ -77,30 +75,58 @@ const sendMessage = asyncHandler(async (req, res) => {
       }
     } catch (error) {
       console.error("⚠️ Spam check failed, allowing message:", error.message);
-      // Nếu API lỗi, cho phép tin nhắn đi qua
     }
   }
 
-  // Handle file upload if present
+  // XỬ LÝ FILE UPLOAD
   if (req.file) {
     try {
+      console.log("📎 File received:", {
+        name: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype,
+        path: req.file.path,
+      });
+
+      // Upload lên Cloudinary từ đường dẫn file
       const result = await cloudinary.uploader.upload(req.file.path, {
         folder: "chat_files",
         resource_type: "auto",
       });
 
+      console.log("☁️ Cloudinary upload success:", result.secure_url);
+
       newMessage.fileUrl = result.secure_url;
       newMessage.fileName = req.file.originalname;
       newMessage.fileType = req.file.mimetype;
       newMessage.cloudinary_id = result.public_id;
+
+      // Xóa file tạm sau khi upload thành công
+      fs.unlink(req.file.path, (err) => {
+        if (err) {
+          console.error("⚠️ Failed to delete temp file:", err);
+        } else {
+          console.log("🗑️ Temp file deleted:", req.file.path);
+        }
+      });
     } catch (uploadError) {
+      console.error("❌ Cloudinary upload error:", uploadError);
+
+      // Xóa file tạm nếu upload thất bại
+      if (req.file && req.file.path) {
+        fs.unlink(req.file.path, (err) => {
+          if (err)
+            console.error("⚠️ Failed to delete temp file on error:", err);
+        });
+      }
+
       res.status(400);
       throw new Error("File upload failed: " + uploadError.message);
     }
   }
 
   try {
-    // ✅ LƯU TIN NHẮN VÀO DATABASE (kể cả spam)
+    // Lưu tin nhắn vào database
     var message = await Message.create(newMessage);
 
     message = await message.populate("sender", "name pic");
@@ -110,15 +136,16 @@ const sendMessage = asyncHandler(async (req, res) => {
       select: "name pic email",
     });
 
-    // ✅ LUÔN CẬP NHẬT LATEST MESSAGE (kể cả tin nhắn spam)
+    // Cập nhật latest message
     await Chat.findByIdAndUpdate(chatId, {
       latestMessage: message,
     });
 
-    console.log("✅ Message saved and sent successfully");
+    console.log("✅ Message saved successfully:", message._id);
 
     res.json(message);
   } catch (error) {
+    console.error("❌ Save message error:", error);
     res.status(400);
     throw new Error(error.message);
   }
@@ -157,7 +184,8 @@ const markAsSpam = asyncHandler(async (req, res) => {
     }
 
     message.isSpam = true;
-    message.blocked = false; // ✅ Không chặn, chỉ đánh dấu
+    message.blocked = false;
+
     if (!message.markedAsSpamBy.includes(req.user._id)) {
       message.markedAsSpamBy.push(req.user._id);
     }
@@ -167,6 +195,8 @@ const markAsSpam = asyncHandler(async (req, res) => {
     );
 
     await message.save();
+
+    console.log("✅ Message marked as spam:", message._id);
     res.json(message);
   } catch (error) {
     res.status(400);
@@ -188,6 +218,7 @@ const markAsNotSpam = asyncHandler(async (req, res) => {
 
     message.isSpam = false;
     message.blocked = false;
+
     if (!message.markedAsNotSpamBy.includes(req.user._id)) {
       message.markedAsNotSpamBy.push(req.user._id);
     }
@@ -197,6 +228,8 @@ const markAsNotSpam = asyncHandler(async (req, res) => {
     );
 
     await message.save();
+
+    console.log("✅ Message marked as not spam:", message._id);
     res.json(message);
   } catch (error) {
     res.status(400);

@@ -3,9 +3,10 @@
 /client/.env
 
 /server/node_modules
-/server/package-lock.json
+uploads/package-lock.json
 server/.env
 server/vercel.json
 server/config/dev.js
+/server/uploads/
 
 
